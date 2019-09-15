@@ -1,0 +1,12 @@
+main: net.trivernis.chunkmaster.Chunkmaster
+name: Chunkmaster
+version: '1.0 SNAPSHOT'
+description: Chunk commands plugin.
+author: Trivernis
+website: trivernis.net
+commands:
+
+permissions:
+  chunkmaster.*:
+    description: Wildcard permission
+    default: op
