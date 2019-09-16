@@ -10,12 +10,20 @@ commands:
     description: Generates chunks starting from the world spawnpoint
     permission: chumkmaster.generate
     usage: /generate [world]
+  listgentasks:
+    description: Lists all generation tasks
+    permission: chunkmaster.listgentasks
+    usage: /listgentasks
 permissions:
   cunkmaster.generate:
     description: Allows generate command
+    default: op
+  chunkmaster.listgentasks:
+    description: Lists all generation tasks
     default: op
   chunkmaster.*:
     description: Wildcard permission
     default: op
     children:
       - chunkmaster.generate
+      - chunkmaster.listgentasks

@@ -1,6 +1,7 @@
 package net.trivernis.chunkmaster
 
 import net.trivernis.chunkmaster.commands.CommandGenerate
+import net.trivernis.chunkmaster.commands.CommandListGenTasks
 import net.trivernis.chunkmaster.lib.GenerationManager
 import net.trivernis.chunkmaster.lib.Spiral
 import org.bukkit.plugin.java.JavaPlugin
@@ -20,6 +21,7 @@ class Chunkmaster: JavaPlugin() {
         generationManager = GenerationManager(this, server)
         generationManager.init()
         getCommand("generate")?.setExecutor(CommandGenerate(this))
+        getCommand("listgentasks")?.setExecutor(CommandListGenTasks(this))
         server.pluginManager.registerEvents(ChunkmasterEvents(this, server), this)
     }
 

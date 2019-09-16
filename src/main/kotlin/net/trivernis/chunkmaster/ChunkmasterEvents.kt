@@ -11,7 +11,8 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
      * Autostart generation tasks
      */
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        if (server.onlinePlayers.size == 1 && server.onlinePlayers.contains(event.player)) {
+        if (server.onlinePlayers.size == 1 && server.onlinePlayers.contains(event.player) ||
+                server.onlinePlayers.isEmpty()) {
             chunkmaster.generationManager.startAll()
             chunkmaster.logger.info("Server is empty. Starting chunk generation tasks.")
         }

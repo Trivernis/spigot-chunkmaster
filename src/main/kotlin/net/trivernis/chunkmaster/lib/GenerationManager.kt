@@ -11,7 +11,8 @@ import java.lang.NullPointerException
 
 class GenerationManager(private val chunkmaster: Chunkmaster, private val server: Server) {
 
-    private val tasks: HashSet<TaskEntry> = HashSet()
+    val tasks: HashSet<TaskEntry> = HashSet()
+        get() = field
 
     /**
      * Adds a generation task
@@ -60,7 +61,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     fun init() {
         chunkmaster.logger.info("Creating task to load chunk generation Tasks later...")
         server.scheduler.runTaskLater(chunkmaster, Runnable {
-            startAll()     // run startAll after 10 seconds
+            if (server.onlinePlayers.isEmpty()) {
+                startAll()     // run startAll after 10 seconds if empty
+            }
         }, 200)
     }
 
@@ -108,7 +111,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                server.consoleSender.sendMessage("Task #${task.id} running for \"${genTask.world.name}\"." +
+                server.consoleSender.sendMessage("Task #${task.id} running for \"${genTask.world.name}\". " +
                         "Progress ${task.generationTask.count} chunks. Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}")
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
