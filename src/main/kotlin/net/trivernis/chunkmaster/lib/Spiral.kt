@@ -2,7 +2,7 @@ package net.trivernis.chunkmaster.lib
 
 import kotlin.math.abs
 
-class Spiral(private val center: Pair<Int, Int>, private val start: Pair<Int, Int>) {
+class Spiral(private val center: Pair<Int, Int>, start: Pair<Int, Int>) {
     var currentPos = start
     var direction = 0
     var count = 0
@@ -12,15 +12,12 @@ class Spiral(private val center: Pair<Int, Int>, private val start: Pair<Int, In
      */
     fun next(): Pair<Int, Int> {
         if (count == 0 && currentPos != center) {
-            val distances = getDistances(center, currentPos)
-
-            if (distances.second < distances.first && distances.first > 0) {
-                direction = 1
-            } else if (distances.first > distances.second && distances.second < 0) {
-                direction = 2
-            } else if (distances.second > distances.first && distances.first < 0) {
-                direction = 3
-            }
+            // simulate the spiral to get the correct direction
+            // TODO: Improve performance of this workaround (replace it with acutal stuff)
+            val simSpiral = Spiral(center, center)
+            while (simSpiral.next() != currentPos);
+            direction = simSpiral.direction
+            count = simSpiral.count
         }
         if (count == 1) {   // because of the center behaviour
             count ++

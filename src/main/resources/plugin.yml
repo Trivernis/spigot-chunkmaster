@@ -14,12 +14,19 @@ commands:
     description: Lists all generation tasks
     permission: chunkmaster.listgentasks
     usage: /listgentasks
+  removegentask:
+    description: Removes the generation task with the specified id
+    permission: chunkmaster.removegentask
+    usage: /removegentask {task-id}
 permissions:
   cunkmaster.generate:
-    description: Allows generate command
+    description: Allows generate command.
     default: op
   chunkmaster.listgentasks:
-    description: Lists all generation tasks
+    description: Allows the listgentask command.
+    default: op
+  chunkmaster.removegentask:
+    description: Allows the removegentask command.
     default: op
   chunkmaster.*:
     description: Wildcard permission
@@ -27,3 +34,4 @@ permissions:
     children:
       - chunkmaster.generate
       - chunkmaster.listgentasks
+      - chunkmaster.removegentask

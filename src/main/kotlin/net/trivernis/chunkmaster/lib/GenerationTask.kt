@@ -15,26 +15,36 @@ class GenerationTask(private val plugin: Chunkmaster, val world: World,
     var lastChunk: Chunk = startChunk
         get() = field
 
+    /**
+     * Runs the generation task. Every Iteration the next chunk will be generated if
+     * it hasn't been generated already.
+     */
     override fun run() {
-        if (loadedChunks.size > 10) {
-            for (chunk in loadedChunks) {
-                if (chunk.isLoaded) {
-                    chunk.unload(true)
+        if (plugin.mspt < 500L) {    // pause when tps < 2
+            if (loadedChunks.size > 10) {
+                for (chunk in loadedChunks) {
+                    if (chunk.isLoaded) {
+                        chunk.unload(true)
+                    }
                 }
-            }
-        } else {
-            val nextChunkCoords = spiral.next()
-            val chunk = world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
+            } else {
+                val nextChunkCoords = spiral.next()
+                val chunk = world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
 
-            if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                chunk.load(true)
-                loadedChunks.add(chunk)
+                if (!world.isChunkGenerated(chunk.x, chunk.z)) {
+                    chunk.load(true)
+                    loadedChunks.add(chunk)
+                }
+                lastChunk = chunk
+                count++
             }
-            lastChunk = chunk
-            count++
         }
     }
 
+    /**
+     * Cancels the generation task.
+     * This unloads all chunks that were generated but not unloaded yet.
+     */
     fun cancel() {
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {

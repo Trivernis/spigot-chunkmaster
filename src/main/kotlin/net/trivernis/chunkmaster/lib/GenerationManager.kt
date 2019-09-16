@@ -47,11 +47,31 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     /**
      * Resumes a generation task
      */
-    fun resumeTask(world: World, center: Chunk, last: Chunk, id: Int) {
+    private fun resumeTask(world: World, center: Chunk, last: Chunk, id: Int) {
         chunkmaster.logger.info("Resuming chunk generation task for world \"${world.name}\"")
         val generationTask = GenerationTask(chunkmaster, world, center, last)
         val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10, 2)
         tasks.add(TaskEntry(id, task, generationTask))
+    }
+
+    /**
+     * Stops a running generation task.
+     */
+    fun removeTask(id: Int) {
+        val taskEntry = this.tasks.find {it.id == id}
+        if (taskEntry != null) {
+            taskEntry.generationTask.cancel()
+            taskEntry.task.cancel()
+            if (taskEntry.task.isCancelled) {
+                tasks.remove(taskEntry)
+            }
+            val setAutostart = chunkmaster.sqliteConnection.prepareStatement("""
+                UPDATE TABLE generation_tasks SET autostart = 0 WHERE id = ?
+            """.trimIndent())
+            setAutostart.setInt(1, id)
+            setAutostart.execute()
+            setAutostart.close()
+        }
     }
 
     /**
@@ -75,6 +95,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             task.generationTask.cancel()
             task.task.cancel()
+            if (task.task.isCancelled) {
+                tasks.remove(task)
+            }
+            chunkmaster.logger.info("Canceled task #${task.id}")
         }
     }
 
@@ -88,11 +112,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         val res = savedTasksStatement.resultSet
         while (res.next()) {
             try {
-                val id = res.getInt("id")
-                val world = server.getWorld(res.getString("world"))
-                val center = world!!.getChunkAt(res.getInt("center_x"), res.getInt("center_z"))
-                val last = world.getChunkAt(res.getInt("last_x"), res.getInt("last_z"))
-                resumeTask(world, center, last, id)
+                if (res.getBoolean("autostart")) {
+                    val id = res.getInt("id")
+                    val world = server.getWorld(res.getString("world"))
+                    val center = world!!.getChunkAt(res.getInt("center_x"), res.getInt("center_z"))
+                    val last = world.getChunkAt(res.getInt("last_x"), res.getInt("last_z"))
+                    if (this.tasks.find {it.id == id} == null) {
+                        resumeTask(world, center, last, id)
+                    }
+                }
             } catch (error: NullPointerException) {
                 server.consoleSender.sendMessage("Failed to load Task ${res.getInt("id")}.")
             }

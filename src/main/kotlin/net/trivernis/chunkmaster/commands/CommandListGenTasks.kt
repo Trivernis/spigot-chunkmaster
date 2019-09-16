@@ -15,7 +15,7 @@ class CommandListGenTasks(private val chunkmaster: Chunkmaster): CommandExecutor
         val runningTasks = chunkmaster.generationManager.tasks
         val response = ComponentBuilder("Currently running generation tasks").color(ChatColor.BLUE)
         for (task in runningTasks) {
-            response.append("\n - #${task.id}: ${task.generationTask.world}, Progress ${task.generationTask.count}")
+            response.append("\n - #${task.id}: ${task.generationTask.world.name}, Progress ${task.generationTask.count}")
         }
         response.color(ChatColor.GREEN)
         sender.spigot().sendMessage(*response.create())

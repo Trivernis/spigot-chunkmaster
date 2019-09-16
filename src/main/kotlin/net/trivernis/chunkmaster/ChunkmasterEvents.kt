@@ -1,6 +1,7 @@
 package net.trivernis.chunkmaster
 
 import org.bukkit.Server
+import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -10,7 +11,7 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     /**
      * Autostart generation tasks
      */
-    fun onPlayerQuit(event: PlayerQuitEvent) {
+    @EventHandler fun onPlayerQuit(event: PlayerQuitEvent) {
         if (server.onlinePlayers.size == 1 && server.onlinePlayers.contains(event.player) ||
                 server.onlinePlayers.isEmpty()) {
             chunkmaster.generationManager.startAll()
@@ -21,7 +22,7 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     /**
      * Autostop generation tasks
      */
-    fun onPlayerJoin(event: PlayerJoinEvent) {
+    @EventHandler fun onPlayerJoin(event: PlayerJoinEvent) {
         if (server.onlinePlayers.size == 1 || server.onlinePlayers.isEmpty()) {
             chunkmaster.generationManager.stopAll()
             chunkmaster.logger.info("Stopping generation tasks because of player join.")
