@@ -11,6 +11,17 @@ class Spiral(private val center: Pair<Int, Int>, private val start: Pair<Int, In
      * Returns the next value in the spiral
      */
     fun next(): Pair<Int, Int> {
+        if (count == 0 && currentPos != center) {
+            val distances = getDistances(center, currentPos)
+
+            if (distances.second < distances.first && distances.first > 0) {
+                direction = 1
+            } else if (distances.first > distances.second && distances.second < 0) {
+                direction = 2
+            } else if (distances.second > distances.first && distances.first < 0) {
+                direction = 3
+            }
+        }
         if (count == 1) {   // because of the center behaviour
             count ++
             return currentPos

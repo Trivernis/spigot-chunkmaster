@@ -4,9 +4,18 @@ version: '1.0 SNAPSHOT'
 description: Chunk commands plugin.
 author: Trivernis
 website: trivernis.net
+api-version: '1.14'
 commands:
-
+  generate:
+    description: Generates chunks starting from the world spawnpoint
+    permission: chumkmaster.generate
+    usage: /generate [world]
 permissions:
+  cunkmaster.generate:
+    description: Allows generate command
+    default: op
   chunkmaster.*:
     description: Wildcard permission
     default: op
+    children:
+      - chunkmaster.generate
