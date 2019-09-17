@@ -5,6 +5,7 @@ import net.trivernis.chunkmaster.commands.CommandListGenTasks
 import net.trivernis.chunkmaster.commands.CommandRemoveGenTask
 import net.trivernis.chunkmaster.lib.GenerationManager
 import net.trivernis.chunkmaster.lib.Spiral
+import net.trivernis.chunkmaster.lib.SqlUpdateManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
@@ -66,20 +67,11 @@ class Chunkmaster: JavaPlugin() {
             Class.forName("org.sqlite.JDBC")
             sqliteConnection = DriverManager.getConnection("jdbc:sqlite:${dataFolder.absolutePath}/chunkmaster.db")
             logger.info("Database connection established.")
-            val createTableStatement = sqliteConnection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS generation_tasks (
-                    id integer PRIMARY KEY AUTOINCREMENT,
-                    center_x integer NOT NULL DEFAULT 0,
-                    center_z integer NOT NULL DEFAULT 0,
-                    last_x integer NOT NULL DEFAULT 0,
-                    last_z integer NOT NULL DEFAULT 0,
-                    world text UNIQUE NOT NULL DEFAULT 'world',
-                    autostart integer DEFAULT 1
-                );
-            """.trimIndent())
-            createTableStatement.execute()
-            createTableStatement.close()
-            logger.info("Database tables created.")
+
+            val updateManager = SqlUpdateManager(sqliteConnection, this)
+            updateManager.checkUpdate()
+            updateManager.performUpdate()
+            logger.info("Database fully initialized.")
         } catch(e: Exception) {
             logger.warning("Failed to init database: ${e.message}")
         }

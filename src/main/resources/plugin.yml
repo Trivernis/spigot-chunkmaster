@@ -7,9 +7,13 @@ website: trivernis.net
 api-version: '1.14'
 commands:
   generate:
-    description: Generates chunks starting from the world spawnpoint
+    description: >
+      Generates chunks starting from the world spawnpoint.
+      StopAfter indicates the number of chunks to generate
+      (-1 meaning to stop at the world border). If a player
+      executes the command, the world argument will be ignored.
     permission: chumkmaster.generate
-    usage: /generate [world]
+    usage: /generate [world] [stopAfter]
   listgentasks:
     description: Lists all generation tasks
     permission: chunkmaster.listgentasks

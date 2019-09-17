@@ -13,18 +13,32 @@ class CommandGenerate(private val chunkmaster: Chunkmaster): CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender is Player) {
             return if (command.testPermission(sender)) {
-                chunkmaster.generationManager.addTask(sender.world)
-                sender.sendMessage("Added generation task for world \"${sender.world.name}\"")
+                var stopAfter = -1
+
+                if (args.isNotEmpty() && args[0].toIntOrNull() != null) {
+                    stopAfter = args[0].toInt()
+                }
+                chunkmaster.generationManager.addTask(sender.world, stopAfter)
+                sender.sendMessage("Added generation task for world \"${sender.world.name}\"" +
+                        "Stopping after $stopAfter chunks (-1 for world border).")
                 true
             } else {
                 sender.sendMessage("You do not have permission.")
                 true
             }
         } else {
-            return if (args.size == 1) {
+            return if (args.size >= 1) {
                 val world = sender.server.getWorld(args[0])
                 if (world != null) {
-                    chunkmaster.generationManager.addTask(world)
+                    var stopAfter = -1
+
+                    if (args.size >=2 && args[1].toIntOrNull() != null) {
+                        stopAfter = args[1].toInt()
+                    }
+                    chunkmaster.generationManager.addTask(world, stopAfter)
+
+                    sender.sendMessage("Added generation task for world \"${world.name}\"" +
+                            "Stopping after $stopAfter chunks (-1 for world border).")
                     true
                 } else {
                     sender.sendMessage("World \"${args[0]}\" not found")
