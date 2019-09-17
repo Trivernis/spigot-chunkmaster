@@ -3,8 +3,8 @@ package net.trivernis.chunkmaster.lib
 import kotlin.math.abs
 
 class Spiral(private val center: Pair<Int, Int>, start: Pair<Int, Int>) {
-    var currentPos = start
-    var direction = 0
+    private var currentPos = start
+    private var direction = 0
     var count = 0
 
     /**

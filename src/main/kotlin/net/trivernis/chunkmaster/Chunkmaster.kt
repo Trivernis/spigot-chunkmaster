@@ -1,17 +1,13 @@
 package net.trivernis.chunkmaster
 
-import net.trivernis.chunkmaster.commands.CommandGenerate
-import net.trivernis.chunkmaster.commands.CommandListGenTasks
-import net.trivernis.chunkmaster.commands.CommandRemoveGenTask
+import net.trivernis.chunkmaster.commands.*
 import net.trivernis.chunkmaster.lib.GenerationManager
-import net.trivernis.chunkmaster.lib.Spiral
 import net.trivernis.chunkmaster.lib.SqlUpdateManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
 import java.sql.Connection
 import java.sql.DriverManager
-import kotlin.math.log
 
 class Chunkmaster: JavaPlugin() {
     lateinit var sqliteConnection: Connection
@@ -19,7 +15,7 @@ class Chunkmaster: JavaPlugin() {
     lateinit var generationManager: GenerationManager
     private lateinit var tpsTask: BukkitTask
     var mspt = 50L      // keep track of the milliseconds per tick
-        get() = field
+        private set
 
     /**
      * On enable of the plugin
@@ -29,10 +25,12 @@ class Chunkmaster: JavaPlugin() {
         initDatabase()
         generationManager = GenerationManager(this, server)
         generationManager.init()
-        getCommand("generate")?.setExecutor(CommandGenerate(this))
-        getCommand("listgentasks")?.setExecutor(CommandListGenTasks(this))
-        getCommand("removegentask")?.setExecutor(CommandRemoveGenTask(this))
+
+        getCommand("chunkmaster")?.setExecutor(CommandChunkmaster(this, server))
+        getCommand("chunkmaster")?.aliases = mutableListOf("chm", "chunkm", "cmaster")
+
         server.pluginManager.registerEvents(ChunkmasterEvents(this, server), this)
+
         tpsTask = server.scheduler.runTaskTimer(this, Runnable {
             val start = System.currentTimeMillis()
             server.scheduler.runTaskLater(this, Runnable {
@@ -55,7 +53,12 @@ class Chunkmaster: JavaPlugin() {
      */
     private fun configure() {
         dataFolder.mkdir()
+        config.addDefault("generation.period", 2L)
+        config.addDefault("generation.chunks-skips-per-step", 4)
+        config.addDefault("generation.mspt-pause-threshold", 500L)
+        config.addDefault("generation.pause-on-join", true)
         config.options().copyDefaults(true)
+        saveConfig()
     }
 
     /**

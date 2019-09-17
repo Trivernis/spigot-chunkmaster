@@ -8,9 +8,11 @@ import org.bukkit.scheduler.BukkitTask
 
 class GenerationTask(private val plugin: Chunkmaster, val world: World,
                      private val centerChunk: Chunk, private val startChunk: Chunk,
-                     val stopAfter: Int = -1): Runnable {
+                     private val stopAfter: Int = -1): Runnable {
     private val spiral: Spiral = Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     private val loadedChunks: HashSet<Chunk> = HashSet()
+    private val chunkSkips = plugin.config.getInt("generation.chunks-skips-per-step")
+    private val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
 
     var count = 0
         private set
@@ -25,7 +27,7 @@ class GenerationTask(private val plugin: Chunkmaster, val world: World,
      * After 10 chunks have been generated, they will all be unloaded and saved.
      */
     override fun run() {
-        if (plugin.mspt < 500L) {    // pause when tps < 2
+        if (plugin.mspt < msptThreshold) {    // pause when tps < 2
             if (loadedChunks.size > 10) {
                 for (chunk in loadedChunks) {
                     if (chunk.isLoaded) {
@@ -33,12 +35,20 @@ class GenerationTask(private val plugin: Chunkmaster, val world: World,
                     }
                 }
             } else {
-                val nextChunkCoords = spiral.next()
-                val chunk = world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
-
-                if (!world.worldBorder.isInside(chunk.getBlock(8, 0, 8).location) || (stopAfter in 1..count)) {
+                if (!world.worldBorder.isInside(lastChunk.getBlock(8, 0, 8).location) || (stopAfter in 1..count)) {
                     endReached = true
                     return
+                }
+                var nextChunkCoords = spiral.next()
+                var chunk = world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
+
+                for (i in 1 until chunkSkips) {
+                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
+                        nextChunkCoords = spiral.next()     // if the chunk is generated skip 10 chunks per step
+                        chunk = world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
+                    } else {
+                        break
+                    }
                 }
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {

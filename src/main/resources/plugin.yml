@@ -6,31 +6,35 @@ author: Trivernis
 website: trivernis.net
 api-version: '1.14'
 commands:
-  generate:
-    description: >
-      Generates chunks starting from the world spawnpoint.
-      StopAfter indicates the number of chunks to generate
-      (-1 meaning to stop at the world border). If a player
-      executes the command, the world argument will be ignored.
-    permission: chumkmaster.generate
-    usage: /generate [world] [stopAfter]
-  listgentasks:
-    description: Lists all generation tasks
-    permission: chunkmaster.listgentasks
-    usage: /listgentasks
-  removegentask:
-    description: Removes the generation task with the specified id
-    permission: chunkmaster.removegentask
-    usage: /removegentask {task-id}
+  chunkmaster:
+    description: Main command
+    permission: chunkmaster.chunkmaster
+    usage: /chunkmaster <generate|list|pause|resume|cancel|reload>
+    aliases:
+      - chm
+      - chunkm
+      - cmaster
 permissions:
   cunkmaster.generate:
-    description: Allows generate command.
+    description: Allows the generate subcommand.
     default: op
-  chunkmaster.listgentasks:
-    description: Allows the listgentask command.
+  chunkmaster.list:
+    description: Allows the list subcommand.
     default: op
-  chunkmaster.removegentask:
-    description: Allows the removegentask command.
+  chunkmaster.cancel:
+    description: Allows the remove subcommand.
+    default: op
+  chunkmaster.pause:
+    description: Allows the pause subcommand.
+    default: op
+  chunkmaster.resume:
+    description: Allows the resume subcommand.
+    default: op
+  chunkmaster.reload:
+    description: Allows the reload subcommand.
+    default: op
+  chunkmaster.chunkmaster:
+    description: Allows Chunkmaster commands.
     default: op
   chunkmaster.*:
     description: Wildcard permission
@@ -39,3 +43,6 @@ permissions:
       - chunkmaster.generate
       - chunkmaster.listgentasks
       - chunkmaster.removegentask
+      - chunkmaster.pausegentasks
+      - chunkmaster.resumegentasks
+      - chunkmaster.chunkmaster
