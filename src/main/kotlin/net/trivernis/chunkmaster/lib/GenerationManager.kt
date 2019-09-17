@@ -172,8 +172,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                server.consoleSender.sendMessage("Task #${task.id} running for \"${genTask.world.name}\". " +
-                        "Progress ${task.generationTask.count} chunks. Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}")
+                server.consoleSender.sendMessage("""Task #${task.id} running for "${genTask.world.name}".
+                    |Progress ${task.generationTask.count} chunks
+                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/task.generationTask.stopAfter.toDouble())*100}%)." else ""}
+                    |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' '))
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
                     WHERE id = ?

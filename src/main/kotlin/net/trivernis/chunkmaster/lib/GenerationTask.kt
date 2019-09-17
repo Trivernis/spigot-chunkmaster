@@ -7,8 +7,8 @@ import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 
 class GenerationTask(private val plugin: Chunkmaster, val world: World,
-                     private val centerChunk: Chunk, private val startChunk: Chunk,
-                     private val stopAfter: Int = -1): Runnable {
+                     centerChunk: Chunk, private val startChunk: Chunk,
+                     val stopAfter: Int = -1): Runnable {
     private val spiral: Spiral = Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     private val loadedChunks: HashSet<Chunk> = HashSet()
     private val chunkSkips = plugin.config.getInt("generation.chunks-skips-per-step")
