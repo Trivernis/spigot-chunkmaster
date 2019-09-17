@@ -1,5 +1,6 @@
 package net.trivernis.chunkmaster
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
 import net.trivernis.chunkmaster.lib.GenerationManager
 import net.trivernis.chunkmaster.lib.SqlUpdateManager
@@ -21,6 +22,7 @@ class Chunkmaster: JavaPlugin() {
      * On enable of the plugin
      */
     override fun onEnable() {
+        PaperLib.suggestPaper(this)
         configure()
         initDatabase()
         generationManager = GenerationManager(this, server)

@@ -1,11 +1,10 @@
 package net.trivernis.chunkmaster.lib
 
-import javafx.concurrent.Task
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.Chunk
 import org.bukkit.Server
 import org.bukkit.World
-import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
 import java.lang.NullPointerException
 
@@ -20,7 +19,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun addTask(world: World, stopAfter: Int = -1): Int {
         val centerChunk = world.getChunkAt(world.spawnLocation)
-        val generationTask = GenerationTask(chunkmaster, world, centerChunk, centerChunk, stopAfter)
+        val generationTask = createGenerationTask(world, centerChunk, centerChunk, stopAfter)
+
         val insertStatement = chunkmaster.sqliteConnection.prepareStatement("""
             INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, stop_after)
             values (?, ?, ?, ?, ?, ?)
@@ -59,7 +59,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun resumeTask(world: World, center: Chunk, last: Chunk, id: Int, stopAfter: Int = -1) {
         if (!paused) {
             chunkmaster.logger.info("Resuming chunk generation task for world \"${world.name}\"")
-            val generationTask = GenerationTask(chunkmaster, world, center, last, stopAfter)
+            val generationTask = createGenerationTask(world, center, last, stopAfter)
             val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
                 chunkmaster.config.getLong("generation.period"))
             tasks.add(TaskEntry(id, task, generationTask))
@@ -174,7 +174,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 val genTask = task.generationTask
                 server.consoleSender.sendMessage("""Task #${task.id} running for "${genTask.world.name}".
                     |Progress ${task.generationTask.count} chunks
-                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/task.generationTask.stopAfter.toDouble())*100}%)." else ""}
+                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/task.generationTask.stopAfter.toDouble())*100}%)" else ""}.
                     |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' '))
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
@@ -193,6 +193,18 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             } catch (error: Exception) {
                 server.consoleSender.sendMessage("Exception when saving task progress ${error.message}")
             }
+        }
+    }
+
+    /**
+     * Creates a new generation task. This method is used to create a task depending
+     * on the server type (Paper/Spigot).
+     */
+    private fun createGenerationTask(world: World, center: Chunk, start: Chunk, stopAfter: Int): GenerationTask {
+        return if (PaperLib.isPaper()) {
+            GenerationTaskPaper(chunkmaster, world, center, start, stopAfter)
+        }  else {
+            GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter)
         }
     }
 }
