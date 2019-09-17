@@ -1,6 +1,7 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
+import net.trivernis.chunkmaster.lib.Spiral
 import org.bukkit.Chunk
 import org.bukkit.World
 
@@ -15,7 +16,8 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
     abstract val lastChunk: Chunk
     abstract val endReached: Boolean
 
-    protected val spiral: Spiral = Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
+    protected val spiral: Spiral =
+        Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     protected val loadedChunks: HashSet<Chunk> = HashSet()
     protected val chunkSkips = plugin.config.getInt("generation.chunks-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
@@ -23,10 +25,15 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
     abstract override fun run()
     abstract fun cancel()
 
-    val nextChunk: Chunk
+    val nextChunkCoordinates: ChunkCoordinates
         get() {
             val nextChunkCoords = spiral.next()
-            return world.getChunkAt(nextChunkCoords.first, nextChunkCoords.second)
+            return ChunkCoordinates(nextChunkCoords.first, nextChunkCoords.second)
+        }
+    val nextChunk: Chunk
+        get() {
+            val next = nextChunkCoordinates
+            return world.getChunkAt(next.x, next.z)
         }
 
     protected fun borderReached(): Boolean {

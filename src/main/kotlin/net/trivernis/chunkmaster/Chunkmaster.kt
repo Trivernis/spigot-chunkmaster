@@ -2,7 +2,7 @@ package net.trivernis.chunkmaster
 
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
-import net.trivernis.chunkmaster.lib.GenerationManager
+import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import net.trivernis.chunkmaster.lib.SqlUpdateManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask

@@ -1,4 +1,4 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.generation
 
 import org.bukkit.scheduler.BukkitTask
 
