@@ -4,6 +4,7 @@ import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
 import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import net.trivernis.chunkmaster.lib.SqlUpdateManager
+import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
@@ -24,6 +25,9 @@ class Chunkmaster: JavaPlugin() {
     override fun onEnable() {
         PaperLib.suggestPaper(this)
         configure()
+
+        val metrics = Metrics(this)
+
         initDatabase()
         generationManager = GenerationManager(this, server)
         generationManager.init()
