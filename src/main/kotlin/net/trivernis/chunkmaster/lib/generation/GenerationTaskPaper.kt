@@ -73,6 +73,9 @@ class GenerationTaskPaper(
             }
         }
         pendingChunks.clear()
+        if (loadedChunks.isNotEmpty()) {
+            lastChunkCoords = ChunkCoordinates(loadedChunks.last().x, loadedChunks.last().z)
+        }
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {
                 chunk.unload(true)

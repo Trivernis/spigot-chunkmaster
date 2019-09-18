@@ -4,12 +4,32 @@ import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
+import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
     override val name = "generate"
 
+    /**
+     * TabComplete for generate command.
+     */
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: List<String>
+    ): MutableList<String> {
+        if (args.size == 1) {
+            return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
+                .map {it.name}.toMutableList()
+        }
+        return emptyList<String>().toMutableList()
+    }
+
+    /**
+     * Creates a new generation task for the world and chunk count.
+     */
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         var worldName = ""
         var stopAfter = -1

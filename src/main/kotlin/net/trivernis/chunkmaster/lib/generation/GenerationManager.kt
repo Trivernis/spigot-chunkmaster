@@ -10,7 +10,8 @@ import java.lang.NullPointerException
 
 class GenerationManager(private val chunkmaster: Chunkmaster, private val server: Server) {
 
-    val tasks: HashSet<TaskEntry> = HashSet()
+    val tasks: HashSet<RunningTaskEntry> = HashSet()
+    val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
     var paused = false
         private set
 
@@ -47,7 +48,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         if (!paused) {
             val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
                 chunkmaster.config.getLong("generation.period"))
-            tasks.add(TaskEntry(id, task, generationTask))
+            tasks.add(RunningTaskEntry(id, task, generationTask))
+        } else {
+            pausedTasks.add(PausedTaskEntry(id, generationTask))
         }
 
         return id
@@ -62,7 +65,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             val generationTask = createGenerationTask(world, center, last, stopAfter)
             val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
                 chunkmaster.config.getLong("generation.period"))
-            tasks.add(TaskEntry(id, task, generationTask))
+            tasks.add(RunningTaskEntry(id, task, generationTask))
         }
     }
 
@@ -70,18 +73,26 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Stops a running generation task.
      */
     fun removeTask(id: Int): Boolean {
-        val taskEntry = this.tasks.find {it.id == id}
+        val taskEntry: TaskEntry? = if (this.paused) {
+            this.pausedTasks.find {it.id == id}
+        } else {
+            this.tasks.find {it.id == id}
+        }
         if (taskEntry != null) {
-            taskEntry.generationTask.cancel()
-            taskEntry.task.cancel()
+            taskEntry.cancel()
             val deleteTask = chunkmaster.sqliteConnection.prepareStatement("""
                 DELETE FROM generation_tasks WHERE id = ?;
             """.trimIndent())
             deleteTask.setInt(1, taskEntry.id)
             deleteTask.execute()
             deleteTask.close()
-            if (taskEntry.task.isCancelled) {
-                tasks.remove(taskEntry)
+
+            if (taskEntry is RunningTaskEntry) {
+                if (taskEntry.task.isCancelled) {
+                    tasks.remove(taskEntry)
+                }
+            } else if (taskEntry is PausedTaskEntry) {
+                pausedTasks.remove(taskEntry)
             }
             return true
         }
@@ -109,7 +120,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun stopAll() {
         saveProgress()
-        val removalSet = HashSet<TaskEntry>()
+        val removalSet = HashSet<RunningTaskEntry>()
         for (task in tasks) {
             task.generationTask.cancel()
             task.task.cancel()
@@ -154,6 +165,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun pauseAll() {
         paused = true
+        for (task in tasks) {
+            pausedTasks.add(PausedTaskEntry(task.id, task.generationTask))
+        }
         stopAll()
     }
 
@@ -162,6 +176,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun resumeAll() {
         paused = false
+        pausedTasks.clear()
         startAll()
     }
 
@@ -174,7 +189,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 val genTask = task.generationTask
                 server.consoleSender.sendMessage("""Task #${task.id} running for "${genTask.world.name}".
                     |Progress ${task.generationTask.count} chunks
-                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/task.generationTask.stopAfter.toDouble())*100}%)" else ""}.
+                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/
+                        task.generationTask.stopAfter.toDouble())*100}%)" else ""}.
                     |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' '))
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
