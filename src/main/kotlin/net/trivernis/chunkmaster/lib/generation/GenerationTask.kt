@@ -23,6 +23,9 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
 
+    protected var endReachedCallback: (() -> Unit)? = null
+        private set
+
     abstract override fun run()
     abstract fun cancel()
 
@@ -47,5 +50,12 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
      */
     protected fun borderReached(): Boolean {
         return !world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) || (stopAfter in 1..count)
+    }
+
+    /**
+     * Registers end reached callback
+     */
+    fun onEndReached(cb: () -> Unit) {
+        endReachedCallback = cb
     }
 }

@@ -1,6 +1,6 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '0.10-beta'
+version: '0.11-beta'
 description: Chunk commands plugin.
 author: Trivernis
 website: trivernis.net

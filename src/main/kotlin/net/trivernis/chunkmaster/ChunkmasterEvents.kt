@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server: Server) : Listener {
 
     private val pauseOnJoin = chunkmaster.config.getBoolean("generation.pause-on-join")
+    private var playerPaused = false
 
     /**
      * Autostart generation tasks
@@ -19,9 +20,14 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
             if (server.onlinePlayers.size == 1 && server.onlinePlayers.contains(event.player) ||
                 server.onlinePlayers.isEmpty()
             ) {
-                if (!chunkmaster.generationManager.paused) {
-                    chunkmaster.generationManager.startAll()
-                    chunkmaster.logger.info("Server is empty. Starting chunk generation tasks.")
+                if (!playerPaused) {
+                    chunkmaster.generationManager.resumeAll()
+                    chunkmaster.logger.info("Server is empty. Resuming chunk generation tasks.")
+                } else if (chunkmaster.generationManager.paused){
+                    chunkmaster.logger.info("Generation was manually paused. Not resuming automatically.")
+                    playerPaused = chunkmaster.generationManager.paused
+                } else {
+                    chunkmaster.logger.info("Generation tasks are already running.")
                 }
             }
         }
@@ -34,8 +40,9 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     fun onPlayerJoin(event: PlayerJoinEvent) {
         if (pauseOnJoin) {
             if (server.onlinePlayers.size == 1 || server.onlinePlayers.isEmpty()) {
-                chunkmaster.generationManager.stopAll()
-                chunkmaster.logger.info("Stopping generation tasks because of player join.")
+                playerPaused = chunkmaster.generationManager.paused
+                chunkmaster.generationManager.pauseAll()
+                chunkmaster.logger.info("Pausing generation tasks because of player join.")
             }
         }
     }
