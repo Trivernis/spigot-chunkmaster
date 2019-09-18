@@ -22,7 +22,7 @@ idea {
 }
 
 group "net.trivernis"
-version "0.10-beta"
+version "0.11-beta"
 
 sourceCompatibility = 1.8
 
@@ -32,14 +32,15 @@ repositories {
         url "https://hub.spigotmc.org/nexus/content/repositories/snapshots"
     }
     maven {
-        url 'https://papermc.io/repo/repository/maven-public/'
-    }
-    maven {
         url 'https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc'
     }
     maven {
         name 'papermc'
         url 'https://papermc.io/repo/repository/maven-public/'
+    }
+    maven {
+        name 'CodeMc'
+        url 'https://repo.codemc.org/repository/maven-public'
     }
 }
 
@@ -50,11 +51,15 @@ dependencies {
     compileOnly "org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT"
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
     compile "io.papermc:paperlib:1.0.2"
+    compile "org.bstats:bstats-bukkit:1.5"
 }
 
 apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: 'java'
+
 shadowJar {
     relocate 'io.papermc.lib', 'net.trivernis.chunkmaster.paperlib'
+    relocate 'org.bstats', 'net.trivernis.chunkmaster.bstats'
 }
 
 jar {
