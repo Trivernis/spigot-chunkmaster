@@ -59,17 +59,21 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
             }
         }
         val world = chunkmaster.server.getWorld(worldName)
-        return if (world != null) {
+        val allTasks = chunkmaster.generationManager.allTasks
+        return if (world != null && (allTasks.find { it.generationTask.world == world }) == null) {
             chunkmaster.generationManager.addTask(world, stopAfter)
             sender.spigot().sendMessage(*ComponentBuilder("Generation task for world ").color(ChatColor.BLUE)
                 .append(worldName).color(ChatColor.GREEN).append(" until ").color(ChatColor.BLUE)
                 .append(if (stopAfter > 0) "$stopAfter chunks" else "WorldBorder").color(ChatColor.GREEN)
                 .append(" successfully created").color(ChatColor.BLUE).create())
             true
-        } else {
+        } else if (world == null){
             sender.spigot().sendMessage(*ComponentBuilder("World ").color(ChatColor.RED)
                 .append(worldName).color(ChatColor.GREEN).append(" not found!").color(ChatColor.RED).create())
             false
+        } else {
+            sender.spigot().sendMessage(*ComponentBuilder("Task already exists!").color(ChatColor.RED).create())
+            return false
         }
     }
 }

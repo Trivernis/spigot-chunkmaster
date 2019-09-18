@@ -38,6 +38,7 @@ class GenerationTaskPaper(
             } else if (pendingChunks.size < maxPendingChunks) {   // if more than 10 chunks are pending, wait.
                 if (borderReached()) {
                     endReached = true
+                    endReachedCallback?.invoke()
                     return
                 }
 

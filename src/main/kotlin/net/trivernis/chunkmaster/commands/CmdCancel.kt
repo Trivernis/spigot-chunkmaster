@@ -21,9 +21,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
         args: List<String>
     ): MutableList<String> {
         val genManager = chunkmaster.generationManager
-        val allTasks = HashSet<TaskEntry>()
-        allTasks.addAll(genManager.pausedTasks)
-        allTasks.addAll(genManager.tasks)
+        val allTasks = genManager.allTasks
         return allTasks.filter {it.id.toString().indexOf(args[0]) == 0}
             .map { it.id.toString() }.toMutableList()
     }
