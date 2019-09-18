@@ -22,11 +22,24 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 ```yaml
 generation:
 
+  # The maximum amount of chunks that are loaded before unloading and saving them.
+  # Higher values mean higher generation speed but greater memory usage.
+  # The value should be a positive integer.
+  max-loaded-chunks: 10
+
+  # Paper Only
+  # The maximum amount of requested chunks with the asynchronous paper chunk
+  # loading method. Higher values mean faster generation but more memory usage
+  # (and probably bigger performance impact).
+  # The value should be a positive integer.
+  max-pending-chunks: 10
+
   # The period (in ticks) in which a generation step is run.
   # Higher values mean less performance impact but slower generation.
   # The value should be a positive integer.
   period: 2
 
+  # Paper Only
   # The number of already generated chunks that will be skipped for each step.
   # Notice that these still have a performance impact because the server needs to check
   # if the chunk is generated.
@@ -48,3 +61,9 @@ generation:
   # The value should be a boolean <true/false>
   pause-on-join: true
 ```
+
+## Spigot and Paper
+
+The plugin works on spigot and paper servers but is significantly faster on paper servers
+(because it profits from asynchronous chunk loading an the better implementation of the
+isChunkGenerated method).

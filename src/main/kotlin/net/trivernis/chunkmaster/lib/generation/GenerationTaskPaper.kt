@@ -12,19 +12,14 @@ class GenerationTaskPaper(
     override val stopAfter: Int = -1
 ) : GenerationTask(plugin, centerChunk, startChunk) {
 
+    private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
+
     private val pendingChunks = HashSet<CompletableFuture<Chunk>>()
 
     override var count = 0
         private set
-    override var lastChunk: Chunk = startChunk
-        get() {
-            return world.getChunkAt(lastChunkCoords.x, lastChunkCoords.z)
-        }
-        private set
     override var endReached: Boolean = false
         private set
-
-    private var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
 
     /**
      * Runs the generation task. Every Iteration the next chunk will be generated if
@@ -33,13 +28,14 @@ class GenerationTaskPaper(
      */
     override fun run() {
         if (plugin.mspt < msptThreshold) {    // pause when tps < 2
-            if (loadedChunks.size > 10) {
+            if (loadedChunks.size > maxLoadedChunks) {
                 for (chunk in loadedChunks) {
                     if (chunk.isLoaded) {
                         chunk.unload(true)
                     }
                 }
-            } else if (pendingChunks.size < 10) {   // if more than 10 chunks are pending, wait.
+                loadedChunks.clear()
+            } else if (pendingChunks.size < maxPendingChunks) {   // if more than 10 chunks are pending, wait.
                 if (borderReached()) {
                     endReached = true
                     return

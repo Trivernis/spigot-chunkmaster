@@ -56,9 +56,11 @@ class Chunkmaster: JavaPlugin() {
     private fun configure() {
         dataFolder.mkdir()
         config.addDefault("generation.period", 2L)
-        config.addDefault("generation.chunks-skips-per-step", 4)
+        config.addDefault("generation.chunks-skips-per-step", 10)
         config.addDefault("generation.mspt-pause-threshold", 500L)
         config.addDefault("generation.pause-on-join", true)
+        config.addDefault("generation.max-pending-chunks", 10)
+        config.addDefault("generation.max-loaded-chunks", 10)
         config.options().copyDefaults(true)
         saveConfig()
     }

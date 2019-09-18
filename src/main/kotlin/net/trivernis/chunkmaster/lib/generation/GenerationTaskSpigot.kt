@@ -13,8 +13,6 @@ class GenerationTaskSpigot(
 
     override var count = 0
         private set
-    override var lastChunk: Chunk = startChunk
-        private set
     override var endReached: Boolean = false
         private set
 
@@ -25,33 +23,27 @@ class GenerationTaskSpigot(
      */
     override fun run() {
         if (plugin.mspt < msptThreshold) {    // pause when tps < 2
-            if (loadedChunks.size > 10) {
+            if (loadedChunks.size > maxLoadedChunks) {
                 for (chunk in loadedChunks) {
                     if (chunk.isLoaded) {
                         chunk.unload(true)
                     }
                 }
+                loadedChunks.clear()
             } else {
                 if (borderReached()) {
                     endReached = true
                     return
                 }
 
-                var chunk = nextChunk
-
-                for (i in 1 until chunkSkips) {
-                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
-                        chunk = nextChunk
-                    } else {
-                        break
-                    }
-                }
+                val chunk = nextChunkCoordinates
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    chunk.load(true)
-                    loadedChunks.add(chunk)
+                    val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
+                    chunkInstance.load(true)
+                    loadedChunks.add(chunkInstance)
                 }
-                lastChunk = chunk
+                lastChunkCoords = chunk
                 count = spiral.count // set the count to the more accurate spiral count
             }
         }
