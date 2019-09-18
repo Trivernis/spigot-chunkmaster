@@ -1,7 +1,8 @@
 package net.trivernis.chunkmaster
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
-import net.trivernis.chunkmaster.lib.GenerationManager
+import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import net.trivernis.chunkmaster.lib.SqlUpdateManager
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
@@ -21,6 +22,7 @@ class Chunkmaster: JavaPlugin() {
      * On enable of the plugin
      */
     override fun onEnable() {
+        PaperLib.suggestPaper(this)
         configure()
         initDatabase()
         generationManager = GenerationManager(this, server)
@@ -54,9 +56,11 @@ class Chunkmaster: JavaPlugin() {
     private fun configure() {
         dataFolder.mkdir()
         config.addDefault("generation.period", 2L)
-        config.addDefault("generation.chunks-skips-per-step", 4)
+        config.addDefault("generation.chunks-skips-per-step", 10)
         config.addDefault("generation.mspt-pause-threshold", 500L)
         config.addDefault("generation.pause-on-join", true)
+        config.addDefault("generation.max-pending-chunks", 10)
+        config.addDefault("generation.max-loaded-chunks", 10)
         config.options().copyDefaults(true)
         saveConfig()
     }

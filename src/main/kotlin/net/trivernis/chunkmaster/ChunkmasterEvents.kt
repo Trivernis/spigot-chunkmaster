@@ -6,17 +6,19 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
-class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server: Server): Listener {
+class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server: Server) : Listener {
 
     private val pauseOnJoin = chunkmaster.config.getBoolean("generation.pause-on-join")
 
     /**
      * Autostart generation tasks
      */
-    @EventHandler fun onPlayerQuit(event: PlayerQuitEvent) {
+    @EventHandler
+    fun onPlayerQuit(event: PlayerQuitEvent) {
         if (pauseOnJoin) {
             if (server.onlinePlayers.size == 1 && server.onlinePlayers.contains(event.player) ||
-                server.onlinePlayers.isEmpty()) {
+                server.onlinePlayers.isEmpty()
+            ) {
                 if (!chunkmaster.generationManager.paused) {
                     chunkmaster.generationManager.startAll()
                     chunkmaster.logger.info("Server is empty. Starting chunk generation tasks.")
@@ -28,7 +30,8 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     /**
      * Autostop generation tasks
      */
-    @EventHandler fun onPlayerJoin(event: PlayerJoinEvent) {
+    @EventHandler
+    fun onPlayerJoin(event: PlayerJoinEvent) {
         if (pauseOnJoin) {
             if (server.onlinePlayers.size == 1 || server.onlinePlayers.isEmpty()) {
                 chunkmaster.generationManager.stopAll()

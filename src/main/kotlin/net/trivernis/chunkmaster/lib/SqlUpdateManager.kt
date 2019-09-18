@@ -62,7 +62,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                 stmt.execute()
                 stmt.close()
             } catch (err: Exception) {
-                chunkmaster.logger.severe("Error creating table $table.");
+                chunkmaster.logger.severe("Error creating table $table.")
             }
         }
         for (table in needUpdate) {
