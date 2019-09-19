@@ -40,3 +40,7 @@ jobs:
 
       # Build jar
       - run: gradle shadowJar
+
+      - store_artifacts:
+          path: ~/build/libs
+          destination: build
