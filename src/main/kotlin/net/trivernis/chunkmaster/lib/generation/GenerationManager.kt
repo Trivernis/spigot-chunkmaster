@@ -226,8 +226,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 chunkmaster.logger.info(
                     """Task #${task.id} running for "${genTask.world.name}".
                     |Progress ${task.generationTask.count} chunks
-                    |${if (task.generationTask.stopAfter > 0) "(${(task.generationTask.count.toDouble() /
-                            task.generationTask.stopAfter.toDouble()) * 100}%)" else ""}.
+                    |${if (task.generationTask.stopAfter > 0) "(${"%.2f".format((task.generationTask.count.toDouble() /
+                            task.generationTask.stopAfter.toDouble()) * 100)}%)" else ""}.
+                    | Speed: ${"%.1f".format(task.generationSpeed)} chunks/sec,
                     |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' ')
                 )
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement(

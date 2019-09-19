@@ -55,21 +55,14 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                 if (args.size > 1) {
                     if (args[1].toIntOrNull() != null) {
                         stopAfter = args[1].toInt()
-                    } else if (args[1] in units) {
-                        when (args[1]) {
-                            "radius" -> {
-                                stopAfter = ((stopAfter * 2)+1).toDouble().pow(2.0).toInt()
-                            }
-                            "diameter" -> {
-                                stopAfter = stopAfter.toDouble().pow(2.0).toInt()
-                            }
-                            "blockradius" -> {
-                                stopAfter = ((stopAfter*32)+1).toDouble().pow(2.0).toInt()
-                            }
-                        }
+                    } else if (args[1] in units && args[0].toIntOrNull() != null) {
+                        stopAfter = getStopAfter(stopAfter, args[1])
                     } else {
                         worldName = args[1]
                     }
+                }
+                if (args.size > 2 && args[2] in units && args[1].toIntOrNull() != null) {
+                    stopAfter = getStopAfter(stopAfter, args[2])
                 }
             } else {
                 worldName = sender.world.name
@@ -77,8 +70,13 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
         } else {
             if (args.isNotEmpty()) {
                 worldName = args[0]
-                if (args.size > 1 && args[1].toIntOrNull() != null) {
-                    stopAfter = args[1].toInt()
+                if (args.size > 1) {
+                    if (args[1].toIntOrNull() != null) {
+                        stopAfter = args[1].toInt()
+                    }
+                }
+                if (args.size > 2 && args[2] in units) {
+                    stopAfter = getStopAfter(stopAfter, args[2])
                 }
             } else {
                 sender.spigot().sendMessage(
@@ -87,6 +85,27 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
             }
         }
         return createTask(sender, worldName, stopAfter)
+    }
+
+    /**
+     * Returns stopAfter for a given unit
+     */
+    private fun getStopAfter(number: Int, unit: String): Int {
+        if (unit in units) {
+            return when (unit) {
+                "radius" -> {
+                    ((number * 2)+1).toDouble().pow(2.0).toInt()
+                }
+                "diameter" -> {
+                    number.toDouble().pow(2.0).toInt()
+                }
+                "blockradius" -> {
+                    ((number*32)+1).toDouble().pow(2.0).toInt()
+                }
+                else -> number
+            }
+        }
+        return number
     }
 
     /**
