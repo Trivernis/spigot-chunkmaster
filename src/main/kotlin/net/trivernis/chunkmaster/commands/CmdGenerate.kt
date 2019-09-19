@@ -7,6 +7,7 @@ import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import kotlin.math.pow
 
 class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
     override val name = "generate"
@@ -23,9 +24,19 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
         if (args.size == 1) {
             return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
                 .map {it.name}.toMutableList()
+        } else if (args.size == 2) {
+            if (args[0].toIntOrNull() != null) {
+                return units.filter {it.indexOf(args[1]) == 0}.toMutableList()
+            }
+        } else if (args.size > 2) {
+            if (args[1].toIntOrNull() != null) {
+                return units.filter {it.indexOf(args[2]) == 0}.toMutableList()
+            }
         }
         return emptyList<String>().toMutableList()
     }
+    val units = listOf("blockradius", "radius", "diameter")
+
 
     /**
      * Creates a new generation task for the world and chunk count.
@@ -41,8 +52,24 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                 } else {
                     worldName = args[0]
                 }
-                if (args.size > 1 && args[1].toIntOrNull() != null) {
-                    stopAfter = args[1].toInt()
+                if (args.size > 1) {
+                    if (args[1].toIntOrNull() != null) {
+                        stopAfter = args[1].toInt()
+                    } else if (args[1] in units) {
+                        when (args[1]) {
+                            "radius" -> {
+                                stopAfter = ((stopAfter * 2)+1).toDouble().pow(2.0).toInt()
+                            }
+                            "diameter" -> {
+                                stopAfter = stopAfter.toDouble().pow(2.0).toInt()
+                            }
+                            "blockradius" -> {
+                                stopAfter = ((stopAfter*32)+1).toDouble().pow(2.0).toInt()
+                            }
+                        }
+                    } else {
+                        worldName = args[1]
+                    }
                 }
             } else {
                 worldName = sender.world.name

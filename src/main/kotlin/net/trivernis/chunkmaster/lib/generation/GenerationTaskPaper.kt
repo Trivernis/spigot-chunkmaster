@@ -8,7 +8,7 @@ import io.papermc.lib.PaperLib
 
 class GenerationTaskPaper(
     private val plugin: Chunkmaster, override val world: World,
-    centerChunk: Chunk, private val startChunk: Chunk,
+    centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
     override val stopAfter: Int = -1
 ) : GenerationTask(plugin, centerChunk, startChunk) {
 
@@ -52,11 +52,14 @@ class GenerationTaskPaper(
                 }
 
                 if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
-                    for (i in 0 until chunksPerStep) {
+                    for (i in 0 until minOf(chunksPerStep, (stopAfter - count) - 1)) {
                         if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
                             pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
                         }
                         chunk = nextChunkCoordinates
+                    }
+                    if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                        pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
                     }
                 }
                 lastChunkCoords = chunk

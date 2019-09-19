@@ -8,7 +8,8 @@ import org.bukkit.World
 /**
  * Interface for generation tasks.
  */
-abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChunk: Chunk) : Runnable {
+abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates) :
+    Runnable {
 
     abstract val stopAfter: Int
     abstract val world: World
@@ -35,11 +36,12 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
             val nextChunkCoords = spiral.next()
             return ChunkCoordinates(nextChunkCoords.first, nextChunkCoords.second)
         }
-    var lastChunk: Chunk = startChunk
+
+    val lastChunk: Chunk
         get() {
             return world.getChunkAt(lastChunkCoords.x, lastChunkCoords.z)
         }
-        private set
+
     val nextChunk: Chunk
         get() {
             val next = nextChunkCoordinates

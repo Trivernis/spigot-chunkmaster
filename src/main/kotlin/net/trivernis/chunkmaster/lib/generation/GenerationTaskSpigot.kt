@@ -6,7 +6,7 @@ import org.bukkit.World
 
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster, override val world: World,
-    centerChunk: Chunk, private val startChunk: Chunk,
+    centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
     override val stopAfter: Int = -1
 ) : GenerationTask(plugin, centerChunk, startChunk) {
 
@@ -37,14 +37,14 @@ class GenerationTaskSpigot(
                     return
                 }
 
-                var chunk = nextChunkCoordinates
+                var chunk = lastChunkCoords
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until chunksPerStep) {
+                    for (i in 0 until minOf(chunksPerStep, (stopAfter - count) - 1)) {
+                        chunk = nextChunkCoordinates
                         val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                         chunkInstance.load(true)
                         loadedChunks.add(chunkInstance)
-                        chunk = nextChunkCoordinates
                     }
                 }
                 lastChunkCoords = chunk
