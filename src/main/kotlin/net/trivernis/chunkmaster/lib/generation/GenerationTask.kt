@@ -8,7 +8,8 @@ import org.bukkit.World
 /**
  * Interface for generation tasks.
  */
-abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChunk: Chunk) : Runnable {
+abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates) :
+    Runnable {
 
     abstract val stopAfter: Int
     abstract val world: World
@@ -19,9 +20,10 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
         Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     protected val loadedChunks: HashSet<Chunk> = HashSet()
     protected var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
-    protected val chunkSkips = plugin.config.getInt("generation.chunks-skips-per-step")
+    protected val chunkSkips = plugin.config.getInt("generation.chunk-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
+    protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
 
     protected var endReachedCallback: (() -> Unit)? = null
         private set
@@ -34,11 +36,12 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
             val nextChunkCoords = spiral.next()
             return ChunkCoordinates(nextChunkCoords.first, nextChunkCoords.second)
         }
-    var lastChunk: Chunk = startChunk
+
+    val lastChunk: Chunk
         get() {
             return world.getChunkAt(lastChunkCoords.x, lastChunkCoords.z)
         }
-        private set
+
     val nextChunk: Chunk
         get() {
             val next = nextChunkCoordinates

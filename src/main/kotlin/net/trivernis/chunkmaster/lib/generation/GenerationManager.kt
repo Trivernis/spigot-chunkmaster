@@ -28,13 +28,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     fun addTask(world: World, stopAfter: Int = -1): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
         if (foundTask == null) {
-            val centerChunk = world.getChunkAt(world.spawnLocation)
+            val centerChunk = ChunkCoordinates(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
             val generationTask = createGenerationTask(world, centerChunk, centerChunk, stopAfter)
 
-            val insertStatement = chunkmaster.sqliteConnection.prepareStatement("""
+            val insertStatement = chunkmaster.sqliteConnection.prepareStatement(
+                """
             INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, stop_after)
             values (?, ?, ?, ?, ?, ?)
-            """)
+            """
+            )
             insertStatement.setInt(1, centerChunk.x)
             insertStatement.setInt(2, centerChunk.z)
             insertStatement.setInt(3, centerChunk.x)
@@ -43,9 +45,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             insertStatement.setInt(6, stopAfter)
             insertStatement.execute()
 
-            val getIdStatement = chunkmaster.sqliteConnection.prepareStatement("""
+            val getIdStatement = chunkmaster.sqliteConnection.prepareStatement(
+                """
             SELECT id FROM generation_tasks ORDER BY id DESC LIMIT 1
-        """.trimIndent())
+        """.trimIndent()
+            )
             getIdStatement.execute()
             val result = getIdStatement.resultSet
             result.next()
@@ -55,13 +59,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             getIdStatement.close()
 
             generationTask.onEndReached {
-                server.consoleSender.sendMessage("Task #${id} finished after ${generationTask.count} chunks.")
+                chunkmaster.logger.info("Task #${id} finished after ${generationTask.count} chunks.")
                 removeTask(id)
             }
 
             if (!paused) {
-                val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
-                    chunkmaster.config.getLong("generation.period"))
+                val task = server.scheduler.runTaskTimer(
+                    chunkmaster, generationTask, 200,  // 10 sec delay
+                    chunkmaster.config.getLong("generation.period")
+                )
                 tasks.add(RunningTaskEntry(id, task, generationTask))
             } else {
                 pausedTasks.add(PausedTaskEntry(id, generationTask))
@@ -76,15 +82,23 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     /**
      * Resumes a generation task
      */
-    private fun resumeTask(world: World, center: Chunk, last: Chunk, id: Int, stopAfter: Int = -1) {
+    private fun resumeTask(
+        world: World,
+        center: ChunkCoordinates,
+        last: ChunkCoordinates,
+        id: Int,
+        stopAfter: Int = -1
+    ) {
         if (!paused) {
             chunkmaster.logger.info("Resuming chunk generation task for world \"${world.name}\"")
             val generationTask = createGenerationTask(world, center, last, stopAfter)
-            val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
-                chunkmaster.config.getLong("generation.period"))
+            val task = server.scheduler.runTaskTimer(
+                chunkmaster, generationTask, 200,  // 10 sec delay
+                chunkmaster.config.getLong("generation.period")
+            )
             tasks.add(RunningTaskEntry(id, task, generationTask))
             generationTask.onEndReached {
-                server.consoleSender.sendMessage("Task #${id} finished after ${generationTask.count} chunks.")
+                chunkmaster.logger.info("Task #${id} finished after ${generationTask.count} chunks.")
                 removeTask(id)
             }
         }
@@ -95,15 +109,17 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun removeTask(id: Int): Boolean {
         val taskEntry: TaskEntry? = if (this.paused) {
-            this.pausedTasks.find {it.id == id}
+            this.pausedTasks.find { it.id == id }
         } else {
-            this.tasks.find {it.id == id}
+            this.tasks.find { it.id == id }
         }
         if (taskEntry != null) {
             taskEntry.cancel()
-            val deleteTask = chunkmaster.sqliteConnection.prepareStatement("""
+            val deleteTask = chunkmaster.sqliteConnection.prepareStatement(
+                """
                 DELETE FROM generation_tasks WHERE id = ?;
-            """.trimIndent())
+            """.trimIndent()
+            )
             deleteTask.setInt(1, taskEntry.id)
             deleteTask.execute()
             deleteTask.close()
@@ -133,7 +149,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             if (server.onlinePlayers.isEmpty()) {
                 startAll()     // run startAll after 10 seconds if empty
             }
-        }, 200)
+        }, 600)
     }
 
     /**
@@ -157,28 +173,27 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Starts all generation tasks.
      */
     fun startAll() {
-        chunkmaster.logger.info("Loading saved chunk generation tasks...")
         val savedTasksStatement = chunkmaster.sqliteConnection.prepareStatement("SELECT * FROM generation_tasks")
         savedTasksStatement.execute()
         val res = savedTasksStatement.resultSet
         while (res.next()) {
             try {
-                if (res.getBoolean("autostart")) {
-                    val id = res.getInt("id")
-                    val world = server.getWorld(res.getString("world"))
-                    val center = world!!.getChunkAt(res.getInt("center_x"), res.getInt("center_z"))
-                    val last = world.getChunkAt(res.getInt("last_x"), res.getInt("last_z"))
-                    val stopAfter = res.getInt("stop_after")
-                    if (this.tasks.find {it.id == id} == null) {
-                        resumeTask(world, center, last, id, stopAfter)
-                    }
+                val id = res.getInt("id")
+                val world = server.getWorld(res.getString("world"))
+                val center = ChunkCoordinates(res.getInt("center_x"), res.getInt("center_z"))
+                val last = ChunkCoordinates(res.getInt("last_x"), res.getInt("last_z"))
+                val stopAfter = res.getInt("stop_after")
+                if (this.tasks.find { it.id == id } == null) {
+                    resumeTask(world!!, center, last, id, stopAfter)
                 }
             } catch (error: NullPointerException) {
-                server.consoleSender.sendMessage("Failed to load Task ${res.getInt("id")}.")
+                chunkmaster.logger.severe("Failed to load Task ${res.getInt("id")}.")
             }
         }
         savedTasksStatement.close()
-        chunkmaster.logger.info("${tasks.size} saved tasks loaded.")
+        if (tasks.isNotEmpty()) {
+            chunkmaster.logger.info("${tasks.size} saved tasks loaded.")
+        }
     }
 
     /**
@@ -208,22 +223,27 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                server.consoleSender.sendMessage("""Task #${task.id} running for "${genTask.world.name}".
+                chunkmaster.logger.info(
+                    """Task #${task.id} running for "${genTask.world.name}".
                     |Progress ${task.generationTask.count} chunks
-                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/
-                        task.generationTask.stopAfter.toDouble())*100}%)" else ""}.
-                    |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' '))
-                val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
+                    |${if (task.generationTask.stopAfter > 0) "(${"%.2f".format((task.generationTask.count.toDouble() /
+                            task.generationTask.stopAfter.toDouble()) * 100)}%)" else ""}.
+                    | Speed: ${"%.1f".format(task.generationSpeed)} chunks/sec,
+                    |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' ')
+                )
+                val updateStatement = chunkmaster.sqliteConnection.prepareStatement(
+                    """
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
                     WHERE id = ?
-                    """.trimIndent())
+                    """.trimIndent()
+                )
                 updateStatement.setInt(1, genTask.lastChunk.x)
                 updateStatement.setInt(2, genTask.lastChunk.z)
                 updateStatement.setInt(3, task.id)
                 updateStatement.execute()
                 updateStatement.close()
             } catch (error: Exception) {
-                server.consoleSender.sendMessage("Exception when saving task progress ${error.message}")
+                chunkmaster.logger.warning("Exception when saving task progress ${error.message}")
             }
         }
     }
@@ -232,10 +252,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Creates a new generation task. This method is used to create a task depending
      * on the server type (Paper/Spigot).
      */
-    private fun createGenerationTask(world: World, center: Chunk, start: Chunk, stopAfter: Int): GenerationTask {
+    private fun createGenerationTask(
+        world: World,
+        center: ChunkCoordinates,
+        start: ChunkCoordinates,
+        stopAfter: Int
+    ): GenerationTask {
         return if (PaperLib.isPaper()) {
             GenerationTaskPaper(chunkmaster, world, center, start, stopAfter)
-        }  else {
+        } else {
             GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter)
         }
     }

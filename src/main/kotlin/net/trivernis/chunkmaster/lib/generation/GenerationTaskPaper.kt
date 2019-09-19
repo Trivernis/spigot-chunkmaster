@@ -8,7 +8,7 @@ import io.papermc.lib.PaperLib
 
 class GenerationTaskPaper(
     private val plugin: Chunkmaster, override val world: World,
-    centerChunk: Chunk, private val startChunk: Chunk,
+    centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
     override val stopAfter: Int = -1
 ) : GenerationTask(plugin, centerChunk, startChunk) {
 
@@ -52,7 +52,15 @@ class GenerationTaskPaper(
                 }
 
                 if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
-                    pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                    for (i in 0 until minOf(chunksPerStep, (stopAfter - count) - 1)) {
+                        if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                            pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                        }
+                        chunk = nextChunkCoordinates
+                    }
+                    if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                        pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                    }
                 }
                 lastChunkCoords = chunk
                 count = spiral.count // set the count to the more accurate spiral count
@@ -66,6 +74,13 @@ class GenerationTaskPaper(
      * This unloads all chunks that were generated but not unloaded yet.
      */
     override fun cancel() {
+        unloadAllChunks()
+    }
+
+    /**
+     * Cancels all pending chunks and unloads all loaded chunks.
+     */
+    fun unloadAllChunks() {
         for (pendingChunk in pendingChunks) {
             if (pendingChunk.isDone) {
                 loadedChunks.add(pendingChunk.get())
