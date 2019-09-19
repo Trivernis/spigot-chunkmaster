@@ -10,7 +10,7 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 
-class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val server: Server): CommandExecutor,
+class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val server: Server) : CommandExecutor,
     TabCompleter {
     private val commands = HashMap<String, Subcommand>()
 
@@ -25,7 +25,7 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
             MutableList<String> {
         if (args.size == 1) {
             return commands.keys.filter { it.indexOf(args[0]) == 0 }.toMutableList()
-        } else if (args.isNotEmpty()){
+        } else if (args.isNotEmpty()) {
 
             if (commands.containsKey(args[0])) {
                 val commandEntry = commands[args[0]]
@@ -40,25 +40,21 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
      */
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isNotEmpty()) {
-            when (args[0]) {
-                "reload" -> {
-                    chunkmaster.reloadConfig()
-                    sender.sendMessage("Configuration file reloaded.")
+            if (sender.hasPermission("chunkmaster.${args[0]}")) {
+                return if (commands.containsKey(args[0])) {
+                    commands[args[0]]!!.execute(sender, args.slice(1 until args.size))
+                } else {
+                    sender.spigot().sendMessage(
+                        *ComponentBuilder("Subcommand ").color(ChatColor.RED)
+                            .append(args[0]).color(ChatColor.GREEN).append(" not found").color(ChatColor.RED).create()
+                    )
+                    false
                 }
-                else -> {
-                    if (sender.hasPermission("chunkmaster.${args[0]}")) {
-                        return if (commands.containsKey(args[0])) {
-                            commands[args[0]]!!.execute(sender, args.slice(1 until args.size))
-                        } else {
-                            sender.spigot().sendMessage(*ComponentBuilder("Subcommand ").color(ChatColor.RED)
-                                .append(args[0]).color(ChatColor.GREEN).append(" not found").color(ChatColor.RED).create())
-                            false
-                        }
-                    } else {
-                        sender.spigot().sendMessage(*ComponentBuilder("You do not have permission!")
-                            .color(ChatColor.RED).create())
-                    }
-                }
+            } else {
+                sender.spigot().sendMessage(
+                    *ComponentBuilder("You do not have permission!")
+                        .color(ChatColor.RED).create()
+                )
             }
             return true
         } else {
@@ -66,7 +62,10 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
         }
     }
 
-    fun registerCommands() {
+    /**
+     * Registers all subcommands.
+     */
+    private fun registerCommands() {
         val cmdGenerate = CmdGenerate(chunkmaster)
         commands[cmdGenerate.name] = cmdGenerate
 
@@ -81,5 +80,8 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
 
         val cmdList = CmdList(chunkmaster)
         commands[cmdList.name] = cmdList
+
+        val cmdReload = CmdReload(chunkmaster)
+        commands[cmdReload.name] = cmdReload
     }
 }

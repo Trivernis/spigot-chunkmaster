@@ -157,7 +157,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Starts all generation tasks.
      */
     fun startAll() {
-        chunkmaster.logger.info("Loading saved chunk generation tasks...")
         val savedTasksStatement = chunkmaster.sqliteConnection.prepareStatement("SELECT * FROM generation_tasks")
         savedTasksStatement.execute()
         val res = savedTasksStatement.resultSet
@@ -178,7 +177,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             }
         }
         savedTasksStatement.close()
-        chunkmaster.logger.info("${tasks.size} saved tasks loaded.")
+        if (tasks.isNotEmpty()) {
+            chunkmaster.logger.info("${tasks.size} saved tasks loaded.")
+        }
     }
 
     /**
