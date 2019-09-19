@@ -1,17 +1,24 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.generation
 
-import javafx.concurrent.Task
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.Chunk
 import org.bukkit.Server
 import org.bukkit.World
-import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
 import java.lang.NullPointerException
 
 class GenerationManager(private val chunkmaster: Chunkmaster, private val server: Server) {
 
-    val tasks: HashSet<TaskEntry> = HashSet()
+    val tasks: HashSet<RunningTaskEntry> = HashSet()
+    val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
+    val allTasks: HashSet<TaskEntry>
+        get() {
+            val all = HashSet<TaskEntry>()
+            all.addAll(pausedTasks)
+            all.addAll(tasks)
+            return all
+        }
     var paused = false
         private set
 
@@ -19,38 +26,51 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Adds a generation task
      */
     fun addTask(world: World, stopAfter: Int = -1): Int {
-        val centerChunk = world.getChunkAt(world.spawnLocation)
-        val generationTask = GenerationTask(chunkmaster, world, centerChunk, centerChunk, stopAfter)
-        val insertStatement = chunkmaster.sqliteConnection.prepareStatement("""
+        val foundTask = allTasks.find { it.generationTask.world == world }
+        if (foundTask == null) {
+            val centerChunk = world.getChunkAt(world.spawnLocation)
+            val generationTask = createGenerationTask(world, centerChunk, centerChunk, stopAfter)
+
+            val insertStatement = chunkmaster.sqliteConnection.prepareStatement("""
             INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, stop_after)
             values (?, ?, ?, ?, ?, ?)
             """)
-        insertStatement.setInt(1, centerChunk.x)
-        insertStatement.setInt(2, centerChunk.z)
-        insertStatement.setInt(3, centerChunk.x)
-        insertStatement.setInt(4, centerChunk.z)
-        insertStatement.setString(5, world.name)
-        insertStatement.setInt(6, stopAfter)
-        insertStatement.execute()
+            insertStatement.setInt(1, centerChunk.x)
+            insertStatement.setInt(2, centerChunk.z)
+            insertStatement.setInt(3, centerChunk.x)
+            insertStatement.setInt(4, centerChunk.z)
+            insertStatement.setString(5, world.name)
+            insertStatement.setInt(6, stopAfter)
+            insertStatement.execute()
 
-        val getIdStatement = chunkmaster.sqliteConnection.prepareStatement("""
+            val getIdStatement = chunkmaster.sqliteConnection.prepareStatement("""
             SELECT id FROM generation_tasks ORDER BY id DESC LIMIT 1
         """.trimIndent())
-        getIdStatement.execute()
-        val result = getIdStatement.resultSet
-        result.next()
-        val id: Int = result.getInt("id")
+            getIdStatement.execute()
+            val result = getIdStatement.resultSet
+            result.next()
+            val id: Int = result.getInt("id")
 
-        insertStatement.close()
-        getIdStatement.close()
+            insertStatement.close()
+            getIdStatement.close()
 
-        if (!paused) {
-            val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
-                chunkmaster.config.getLong("generation.period"))
-            tasks.add(TaskEntry(id, task, generationTask))
+            generationTask.onEndReached {
+                server.consoleSender.sendMessage("Task #${id} finished after ${generationTask.count} chunks.")
+                removeTask(id)
+            }
+
+            if (!paused) {
+                val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
+                    chunkmaster.config.getLong("generation.period"))
+                tasks.add(RunningTaskEntry(id, task, generationTask))
+            } else {
+                pausedTasks.add(PausedTaskEntry(id, generationTask))
+            }
+
+            return id
+        } else {
+            return foundTask.id
         }
-
-        return id
     }
 
     /**
@@ -59,10 +79,14 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun resumeTask(world: World, center: Chunk, last: Chunk, id: Int, stopAfter: Int = -1) {
         if (!paused) {
             chunkmaster.logger.info("Resuming chunk generation task for world \"${world.name}\"")
-            val generationTask = GenerationTask(chunkmaster, world, center, last, stopAfter)
+            val generationTask = createGenerationTask(world, center, last, stopAfter)
             val task = server.scheduler.runTaskTimer(chunkmaster, generationTask, 10,
                 chunkmaster.config.getLong("generation.period"))
-            tasks.add(TaskEntry(id, task, generationTask))
+            tasks.add(RunningTaskEntry(id, task, generationTask))
+            generationTask.onEndReached {
+                server.consoleSender.sendMessage("Task #${id} finished after ${generationTask.count} chunks.")
+                removeTask(id)
+            }
         }
     }
 
@@ -70,18 +94,26 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Stops a running generation task.
      */
     fun removeTask(id: Int): Boolean {
-        val taskEntry = this.tasks.find {it.id == id}
+        val taskEntry: TaskEntry? = if (this.paused) {
+            this.pausedTasks.find {it.id == id}
+        } else {
+            this.tasks.find {it.id == id}
+        }
         if (taskEntry != null) {
-            taskEntry.generationTask.cancel()
-            taskEntry.task.cancel()
+            taskEntry.cancel()
             val deleteTask = chunkmaster.sqliteConnection.prepareStatement("""
                 DELETE FROM generation_tasks WHERE id = ?;
             """.trimIndent())
             deleteTask.setInt(1, taskEntry.id)
             deleteTask.execute()
             deleteTask.close()
-            if (taskEntry.task.isCancelled) {
-                tasks.remove(taskEntry)
+
+            if (taskEntry is RunningTaskEntry) {
+                if (taskEntry.task.isCancelled) {
+                    tasks.remove(taskEntry)
+                }
+            } else if (taskEntry is PausedTaskEntry) {
+                pausedTasks.remove(taskEntry)
             }
             return true
         }
@@ -109,7 +141,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun stopAll() {
         saveProgress()
-        val removalSet = HashSet<TaskEntry>()
+        val removalSet = HashSet<RunningTaskEntry>()
         for (task in tasks) {
             task.generationTask.cancel()
             task.task.cancel()
@@ -154,6 +186,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun pauseAll() {
         paused = true
+        for (task in tasks) {
+            pausedTasks.add(PausedTaskEntry(task.id, task.generationTask))
+        }
         stopAll()
     }
 
@@ -162,6 +197,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun resumeAll() {
         paused = false
+        pausedTasks.clear()
         startAll()
     }
 
@@ -172,8 +208,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                server.consoleSender.sendMessage("Task #${task.id} running for \"${genTask.world.name}\". " +
-                        "Progress ${task.generationTask.count} chunks. Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}")
+                server.consoleSender.sendMessage("""Task #${task.id} running for "${genTask.world.name}".
+                    |Progress ${task.generationTask.count} chunks
+                    |${if (task.generationTask.stopAfter > 0)"(${(task.generationTask.count.toDouble()/
+                        task.generationTask.stopAfter.toDouble())*100}%)" else ""}.
+                    |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' '))
                 val updateStatement = chunkmaster.sqliteConnection.prepareStatement("""
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
                     WHERE id = ?
@@ -183,14 +222,21 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 updateStatement.setInt(3, task.id)
                 updateStatement.execute()
                 updateStatement.close()
-
-                if (genTask.endReached) {   // remove the task if it is finished after the progress has been saved
-                    server.consoleSender.sendMessage("Task #${task.id} finished after ${genTask.count} chunks.")
-                    removeTask(task.id)
-                }
             } catch (error: Exception) {
                 server.consoleSender.sendMessage("Exception when saving task progress ${error.message}")
             }
+        }
+    }
+
+    /**
+     * Creates a new generation task. This method is used to create a task depending
+     * on the server type (Paper/Spigot).
+     */
+    private fun createGenerationTask(world: World, center: Chunk, start: Chunk, stopAfter: Int): GenerationTask {
+        return if (PaperLib.isPaper()) {
+            GenerationTaskPaper(chunkmaster, world, center, start, stopAfter)
+        }  else {
+            GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter)
         }
     }
 }

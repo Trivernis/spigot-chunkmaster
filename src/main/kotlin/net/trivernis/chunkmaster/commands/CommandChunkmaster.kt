@@ -23,7 +23,16 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
      */
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>):
             MutableList<String> {
-        return commands.keys.filter { it.indexOf(args[0]) == 0 }.toMutableList()
+        if (args.size == 1) {
+            return commands.keys.filter { it.indexOf(args[0]) == 0 }.toMutableList()
+        } else if (args.isNotEmpty()){
+
+            if (commands.containsKey(args[0])) {
+                val commandEntry = commands[args[0]]
+                return commandEntry!!.onTabComplete(sender, command, alias, args.slice(1 until args.size))
+            }
+        }
+        return emptyList<String>().toMutableList()
     }
 
     /**
