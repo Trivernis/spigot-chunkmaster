@@ -23,7 +23,9 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
                 server.onlinePlayers.isEmpty()
             ) {
                 if (!playerPaused) {
-                    chunkmaster.logger.info("Server is empty. Resuming chunk generation tasks.")
+                    if (chunkmaster.generationManager.pausedTasks.isNotEmpty()) {
+                        chunkmaster.logger.info("Server is empty. Resuming chunk generation tasks.")
+                    }
                     chunkmaster.generationManager.resumeAll()
                 } else if (chunkmaster.generationManager.paused){
                     chunkmaster.logger.info("Generation was manually paused. Not resuming automatically.")
@@ -42,7 +44,9 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     fun onPlayerJoin(event: PlayerJoinEvent) {
         if (pauseOnJoin) {
             if (server.onlinePlayers.size == 1 || server.onlinePlayers.isEmpty()) {
-                chunkmaster.logger.info("Pausing generation tasks because of player join.")
+                if (chunkmaster.generationManager.tasks.isNotEmpty()) {
+                    chunkmaster.logger.info("Pausing generation tasks because of player join.")
+                }
                 playerPaused = chunkmaster.generationManager.paused
                 chunkmaster.generationManager.pauseAll()
             }
