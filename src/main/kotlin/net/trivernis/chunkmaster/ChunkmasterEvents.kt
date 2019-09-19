@@ -1,10 +1,12 @@
 package net.trivernis.chunkmaster
 
+import net.trivernis.chunkmaster.lib.generation.GenerationTaskPaper
 import org.bukkit.Server
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.event.world.WorldSaveEvent
 
 class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server: Server) : Listener {
 
@@ -21,8 +23,10 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
                 server.onlinePlayers.isEmpty()
             ) {
                 if (!playerPaused) {
+                    if (chunkmaster.generationManager.pausedTasks.isNotEmpty()) {
+                        chunkmaster.logger.info("Server is empty. Resuming chunk generation tasks.")
+                    }
                     chunkmaster.generationManager.resumeAll()
-                    chunkmaster.logger.info("Server is empty. Resuming chunk generation tasks.")
                 } else if (chunkmaster.generationManager.paused){
                     chunkmaster.logger.info("Generation was manually paused. Not resuming automatically.")
                     playerPaused = chunkmaster.generationManager.paused
@@ -40,9 +44,24 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
     fun onPlayerJoin(event: PlayerJoinEvent) {
         if (pauseOnJoin) {
             if (server.onlinePlayers.size == 1 || server.onlinePlayers.isEmpty()) {
+                if (chunkmaster.generationManager.tasks.isNotEmpty()) {
+                    chunkmaster.logger.info("Pausing generation tasks because of player join.")
+                }
                 playerPaused = chunkmaster.generationManager.paused
                 chunkmaster.generationManager.pauseAll()
-                chunkmaster.logger.info("Pausing generation tasks because of player join.")
+            }
+        }
+    }
+
+    /**
+     * Unload all chunks before a save.
+     */
+    @EventHandler
+    fun onWorldSave(event: WorldSaveEvent) {
+        val task = chunkmaster.generationManager.tasks.find { it.generationTask.world == event.world }
+        if (task != null) {
+            if (task.generationTask is GenerationTaskPaper) {
+                task.generationTask.unloadAllChunks()
             }
         }
     }
