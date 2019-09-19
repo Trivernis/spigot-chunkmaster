@@ -83,5 +83,8 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
 
         val cmdReload = CmdReload(chunkmaster)
         commands[cmdReload.name] = cmdReload
+
+        val cmdTpChunk = CmdTpChunk()
+        commands[cmdTpChunk.name] = cmdTpChunk
     }
 }

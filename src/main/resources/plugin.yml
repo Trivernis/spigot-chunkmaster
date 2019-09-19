@@ -9,7 +9,14 @@ commands:
   chunkmaster:
     description: Main command
     permission: chunkmaster.chunkmaster
-    usage: /chunkmaster <generate|list|pause|resume|cancel|reload>
+    usage: |
+      /<command> generate [<world>, <chunk-count>] - generates chunks starting from the spawn until the chunk-count is reached
+      /<command> cancel <task-id> - cancels the generation task with the task-id
+      /<command> list - lists all running and paused generation tasks
+      /<command> pause - pauses all generation tasks
+      /<command> resume - resumes all generation tasks
+      /<command> reload - reloads the configuration and restarts all tasks
+      /<command> tpchunk <chunkX> <chunkZ> - teleports you to the chunk with the given chunk coordinates
     aliases:
       - chm
       - chunkm
@@ -32,6 +39,9 @@ permissions:
     default: op
   chunkmaster.reload:
     description: Allows the reload subcommand.
+    default: op
+  chunkmaster.tpchunk:
+    description: Allows the tpchunk subcommand.
     default: op
   chunkmaster.chunkmaster:
     description: Allows Chunkmaster commands.

@@ -15,8 +15,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                 Pair("last_x", "integer NOT NULL DEFAULT 0"),
                 Pair("last_z", "integer NOT NULL DEFAULT 0"),
                 Pair("world", "text UNIQUE NOT NULL DEFAULT 'world'"),
-                Pair("stop_after", "integer DEFAULT -1"),
-                Pair("autostart", "integer DEFAULT 1")
+                Pair("stop_after", "integer DEFAULT -1")
             )
         )
     )

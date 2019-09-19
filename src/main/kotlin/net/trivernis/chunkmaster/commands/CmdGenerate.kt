@@ -37,6 +37,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
             if (args.isNotEmpty()) {
                 if (args[0].toIntOrNull() != null) {
                     stopAfter = args[0].toInt()
+                    worldName = sender.world.name
                 } else {
                     worldName = args[0]
                 }
@@ -58,6 +59,13 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                 return false
             }
         }
+        return createTask(sender, worldName, stopAfter)
+    }
+
+    /**
+     * Creates the task with the given arguments.
+     */
+    private fun createTask(sender: CommandSender, worldName: String, stopAfter: Int): Boolean {
         val world = chunkmaster.server.getWorld(worldName)
         val allTasks = chunkmaster.generationManager.allTasks
         return if (world != null && (allTasks.find { it.generationTask.world == world }) == null) {
