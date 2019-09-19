@@ -4,18 +4,19 @@ This plugin can be used to pre-generate the region of a world around the spawn c
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
 and resumes when the server is empty again. The generation also auto-resumes after a server
 restart. The plugin tracks the ticks per second and pauses the generation when the tps
-is lower than 2.
+is lower than 2 (configurable).
 
 ## Commands
 
 All features can be accessed with the command `/chunkmaster` or the aliases `/chm`, `chunkm`, `cmaster`.
 
-- `/chunkmaster generate [world] [chunk count]` Starts the generation until the specified chunk count or the world border is reached.
+- `/chunkmaster generate [world] [chunk count] [unit]` Starts the generation until the specified chunk count or the world border is reached.
 - `/chunkmaster list` Lists all running generation tasks
 - `/chunkmaster cancel <Task id>` Cancels the generation task with the specified id (if it is running).
 - `/chunkmaster pause` Pauses all generation tasks until the resume command is executed.
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
+- `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
 
 ## Config
 
