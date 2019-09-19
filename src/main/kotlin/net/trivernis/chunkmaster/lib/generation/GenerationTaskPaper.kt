@@ -52,7 +52,12 @@ class GenerationTaskPaper(
                 }
 
                 if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
-                    pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                    for (i in 0 until chunksPerStep) {
+                        if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                            pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                        }
+                        chunk = nextChunkCoordinates
+                    }
                 }
                 lastChunkCoords = chunk
                 count = spiral.count // set the count to the more accurate spiral count
@@ -66,6 +71,13 @@ class GenerationTaskPaper(
      * This unloads all chunks that were generated but not unloaded yet.
      */
     override fun cancel() {
+        unloadAllChunks()
+    }
+
+    /**
+     * Cancels all pending chunks and unloads all loaded chunks.
+     */
+    fun unloadAllChunks() {
         for (pendingChunk in pendingChunks) {
             if (pendingChunk.isDone) {
                 loadedChunks.add(pendingChunk.get())

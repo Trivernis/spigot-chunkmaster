@@ -22,6 +22,7 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: Chunk, startChun
     protected val chunkSkips = plugin.config.getInt("generation.chunks-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
+    protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
 
     protected var endReachedCallback: (() -> Unit)? = null
         private set

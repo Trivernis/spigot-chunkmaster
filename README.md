@@ -39,13 +39,18 @@ generation:
   # The value should be a positive integer.
   period: 2
 
+  # The max amount of chunks that should be generated per step.
+  # Higher values mean higher generation speed but higher performance impact.
+  # The value should be a positive integer.
+  chunks-per-step: 4
+
   # Paper Only
   # The number of already generated chunks that will be skipped for each step.
   # Notice that these still have a performance impact because the server needs to check
   # if the chunk is generated.
   # Higher values mean faster generation but greater performance impact.
   # The value should be a positive integer.
-  chunks-skips-per-step: 5
+  chunk-skips-per-step: 100
 
   # The maximum milliseconds per tick the server is allowed to have
   # during the cunk generation process.

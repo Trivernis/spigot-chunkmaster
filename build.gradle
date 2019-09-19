@@ -22,7 +22,7 @@ idea {
 }
 
 group "net.trivernis"
-version "0.11-beta"
+version "0.12-beta"
 
 sourceCompatibility = 1.8
 
