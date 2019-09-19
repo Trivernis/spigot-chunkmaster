@@ -100,7 +100,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                     number.toDouble().pow(2.0).toInt()
                 }
                 "blockradius" -> {
-                    ((number*32)+1).toDouble().pow(2.0).toInt()
+                    ((number.toDouble()+1)/8).pow(2.0).toInt()
                 }
                 else -> number
             }
