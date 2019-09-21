@@ -52,17 +52,4 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
             }
         }
     }
-
-    /**
-     * Unload all chunks before a save.
-     */
-    @EventHandler
-    fun onWorldSave(event: WorldSaveEvent) {
-        val task = chunkmaster.generationManager.tasks.find { it.generationTask.world == event.world }
-        if (task != null) {
-            if (task.generationTask is GenerationTaskPaper) {
-                task.generationTask.unloadAllChunks()
-            }
-        }
-    }
 }
