@@ -62,6 +62,8 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                 stmt.close()
             } catch (err: Exception) {
                 chunkmaster.logger.severe("Error creating table $table.")
+                chunkmaster.logger.severe(err.message)
+                chunkmaster.logger.info(err.stackTrace.toString())
             }
         }
         for (table in needUpdate) {
@@ -73,6 +75,8 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                 chunkmaster.logger.info("Updated table ${table.first} with sql $updateSql")
             } catch (e: Exception) {
                 chunkmaster.logger.severe("Failed to update table ${table.first} with sql $updateSql")
+                chunkmaster.logger.severe(e.message)
+                chunkmaster.logger.info(e.stackTrace.toString())
             }
         }
     }
