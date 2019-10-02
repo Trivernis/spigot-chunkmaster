@@ -3,7 +3,7 @@ package net.trivernis.chunkmaster
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
 import net.trivernis.chunkmaster.lib.generation.GenerationManager
-import net.trivernis.chunkmaster.lib.SqlUpdateManager
+import net.trivernis.chunkmaster.lib.SqliteManager
 import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
@@ -12,8 +12,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 
 class Chunkmaster: JavaPlugin() {
-    lateinit var sqliteConnection: Connection
-    var dbname: String? = null
+    lateinit var sqliteManager: SqliteManager
     lateinit var generationManager: GenerationManager
     private lateinit var tpsTask: BukkitTask
     var mspt = 50L      // keep track of the milliseconds per tick
@@ -51,7 +50,6 @@ class Chunkmaster: JavaPlugin() {
     override fun onDisable() {
         logger.info("Stopping all generation tasks...")
         generationManager.stopAll()
-        sqliteConnection.close()
     }
 
     /**
@@ -76,13 +74,8 @@ class Chunkmaster: JavaPlugin() {
     private fun initDatabase() {
         logger.info("Initializing Database...")
         try {
-            Class.forName("org.sqlite.JDBC")
-            sqliteConnection = DriverManager.getConnection("jdbc:sqlite:${dataFolder.absolutePath}/chunkmaster.db")
-            logger.info("Database connection established.")
-
-            val updateManager = SqlUpdateManager(sqliteConnection, this)
-            updateManager.checkUpdate()
-            updateManager.performUpdate()
+            this.sqliteManager = SqliteManager( this)
+            sqliteManager.init()
             logger.info("Database fully initialized.")
         } catch(e: Exception) {
             logger.warning("Failed to init database: ${e.message}")

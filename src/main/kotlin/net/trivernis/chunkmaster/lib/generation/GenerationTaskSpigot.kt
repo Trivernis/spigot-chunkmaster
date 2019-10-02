@@ -33,7 +33,7 @@ class GenerationTaskSpigot(
             } else {
                 if (borderReached()) {
                     endReached = true
-                    endReachedCallback?.invoke()
+                    endReachedCallback?.invoke(this)
                     return
                 }
 

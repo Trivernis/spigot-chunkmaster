@@ -25,7 +25,7 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
     protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
 
-    protected var endReachedCallback: (() -> Unit)? = null
+    protected var endReachedCallback: ((GenerationTask) -> Unit)? = null
         private set
 
     abstract override fun run()
@@ -58,7 +58,7 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates
     /**
      * Registers end reached callback
      */
-    fun onEndReached(cb: () -> Unit) {
+    fun onEndReached(cb: (GenerationTask) -> Unit) {
         endReachedCallback = cb
     }
 }

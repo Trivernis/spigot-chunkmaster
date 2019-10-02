@@ -2,10 +2,14 @@ package net.trivernis.chunkmaster.lib
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.apache.commons.lang.exception.ExceptionUtils
+import org.sqlite.SQLiteConnection
 import java.lang.Exception
 import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 
-class SqlUpdateManager(private val connnection: Connection, private val chunkmaster: Chunkmaster) {
+class SqliteManager(private val chunkmaster: Chunkmaster) {
     private val tables = listOf(
         Pair(
             "generation_tasks",
@@ -24,10 +28,32 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
     private val needCreation = HashSet<String>()
 
     /**
+     * Returns the connection to the database
+     */
+    fun getConnection(): Connection? {
+        try {
+            Class.forName("org.sqlite.JDBC")
+            return DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/chunkmaster.db")
+        } catch (e: Exception) {
+            chunkmaster.logger.severe("Could not get database connection.")
+            chunkmaster.logger.severe(e.message)
+        }
+        return null
+    }
+
+    /**
+     * Checks for and performs an update
+     */
+    fun init() {
+        this.checkUpdate()
+        this.performUpdate()
+    }
+
+    /**
      * Checks which tables need an update or creation.
      */
-    fun checkUpdate() {
-        val meta = connnection.metaData
+    private fun checkUpdate() {
+        val meta = getConnection()!!.metaData
 
         for (table in tables) {
             val resTables = meta.getTables(null, null, table.first, null)
@@ -38,6 +64,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                     if (!resColumn.next()) {
                         needUpdate.add(Pair(table.first, column))
                     }
+                    resColumn.close()
                 }
             } else {
                 needCreation.add(table.first)
@@ -47,9 +74,31 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
     }
 
     /**
+     * Executes a sql statement on the database.
+     */
+    fun executeStatement(sql: String, values: HashMap<Int, Any>, callback: ((ResultSet) -> Unit)?) {
+        val connection = getConnection()
+        if (connection != null) {
+            val statement = connection.prepareStatement(sql)
+            for (parameterValue in values) {
+                statement.setObject(parameterValue.key, parameterValue.value)
+            }
+            statement.execute()
+            val res = statement.resultSet
+            if (callback != null) {
+                callback(res)
+            }
+            statement.close()
+            connection.close()
+        } else {
+            chunkmaster.logger.severe("Could not execute sql $sql. No database connection established.")
+        }
+    }
+
+    /**
      * Creates or updates tables that needed an update.
      */
-    fun performUpdate() {
+    private fun performUpdate() {
         for (table in needCreation) {
             try {
                 var tableDef = "CREATE TABLE IF NOT EXISTS $table ("
@@ -59,21 +108,17 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
                 }
                 tableDef = tableDef.substringBeforeLast(",") + ");"
                 chunkmaster.logger.info("Creating table $table with definition $tableDef")
-                val stmt = connnection.prepareStatement(tableDef)
-                stmt.execute()
-                stmt.close()
-            } catch (err: Exception) {
+                executeStatement(tableDef, HashMap(), null)
+            } catch (e: Exception) {
                 chunkmaster.logger.severe("Error creating table $table.")
-                chunkmaster.logger.severe(err.message)
-                chunkmaster.logger.info(ExceptionUtils.getStackTrace(err));
+                chunkmaster.logger.severe(e.message)
+                chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             }
         }
         for (table in needUpdate) {
             val updateSql = "ALTER TABLE ${table.first} ADD COLUMN ${table.second.first} ${table.second.second}"
             try {
-                val stmt = connnection.prepareStatement(updateSql)
-                stmt.execute()
-                stmt.close()
+                executeStatement(updateSql, HashMap(), null)
                 chunkmaster.logger.info("Updated table ${table.first} with sql $updateSql")
             } catch (e: Exception) {
                 chunkmaster.logger.severe("Failed to update table ${table.first} with sql $updateSql")
