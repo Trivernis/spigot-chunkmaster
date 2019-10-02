@@ -33,7 +33,8 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     fun getConnection(): Connection? {
         try {
             Class.forName("org.sqlite.JDBC")
-            return DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/chunkmaster.db")
+            return DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
+                    "${chunkmaster.config.getString("database.filename")}")
         } catch (e: Exception) {
             chunkmaster.logger.severe("Could not get database connection.")
             chunkmaster.logger.severe(e.message)

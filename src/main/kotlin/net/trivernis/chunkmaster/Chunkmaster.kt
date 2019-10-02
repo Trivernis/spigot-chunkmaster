@@ -64,6 +64,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.pause-on-join", true)
         config.addDefault("generation.max-pending-chunks", 10)
         config.addDefault("generation.max-loaded-chunks", 10)
+        config.addDefault("database.filename", "chunkmaster.db")
         config.options().copyDefaults(true)
         saveConfig()
     }
