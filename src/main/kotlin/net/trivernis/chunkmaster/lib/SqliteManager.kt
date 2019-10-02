@@ -79,17 +79,23 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     fun executeStatement(sql: String, values: HashMap<Int, Any>, callback: ((ResultSet) -> Unit)?) {
         val connection = getConnection()
         if (connection != null) {
-            val statement = connection.prepareStatement(sql)
-            for (parameterValue in values) {
-                statement.setObject(parameterValue.key, parameterValue.value)
+            try {
+                val statement = connection.prepareStatement(sql)
+                for (parameterValue in values) {
+                    statement.setObject(parameterValue.key, parameterValue.value)
+                }
+                statement.execute()
+                val res = statement.resultSet
+                if (callback != null) {
+                    callback(res)
+                }
+                statement.close()
+            } catch (e: Exception) {
+                chunkmaster.logger.severe("An error occured on sql $sql. ${e.message}")
+                chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
+            } finally {
+                connection.close()
             }
-            statement.execute()
-            val res = statement.resultSet
-            if (callback != null) {
-                callback(res)
-            }
-            statement.close()
-            connection.close()
         } else {
             chunkmaster.logger.severe("Could not execute sql $sql. No database connection established.")
         }
