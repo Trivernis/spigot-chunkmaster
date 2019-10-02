@@ -1,6 +1,7 @@
 package net.trivernis.chunkmaster.lib
 
 import net.trivernis.chunkmaster.Chunkmaster
+import org.apache.commons.lang.exception.ExceptionUtils
 import java.lang.Exception
 import java.sql.Connection
 
@@ -41,6 +42,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
             } else {
                 needCreation.add(table.first)
             }
+            resTables.close()
         }
     }
 
@@ -63,7 +65,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
             } catch (err: Exception) {
                 chunkmaster.logger.severe("Error creating table $table.")
                 chunkmaster.logger.severe(err.message)
-                chunkmaster.logger.info(err.stackTrace.toString())
+                chunkmaster.logger.info(ExceptionUtils.getStackTrace(err));
             }
         }
         for (table in needUpdate) {
@@ -76,7 +78,7 @@ class SqlUpdateManager(private val connnection: Connection, private val chunkmas
             } catch (e: Exception) {
                 chunkmaster.logger.severe("Failed to update table ${table.first} with sql $updateSql")
                 chunkmaster.logger.severe(e.message)
-                chunkmaster.logger.info(e.stackTrace.toString())
+                chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             }
         }
     }
