@@ -23,6 +23,11 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 ```yaml
 generation:
 
+  # If set to true the plugin ignores the vanilla world border and doesn't stop
+  # the chunk generation when reaching it.
+  # The value should be a boolean <true/false>
+  ignore-worldborder: false
+
   # The maximum amount of chunks that are loaded before unloading and saving them.
   # Higher values mean higher generation speed but greater memory usage.
   # The value should be a positive integer.
