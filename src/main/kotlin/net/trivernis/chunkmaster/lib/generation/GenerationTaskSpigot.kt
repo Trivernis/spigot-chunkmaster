@@ -1,7 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
-import org.bukkit.Chunk
 import org.bukkit.World
 
 class GenerationTaskSpigot(
