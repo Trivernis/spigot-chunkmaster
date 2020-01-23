@@ -1,6 +1,6 @@
-# chunkmaster [![CircleCI](https://circleci.com/gh/Trivernis/spigot-chunkmaster.svg?style=svg)](https://circleci.com/gh/Trivernis/spigot-chunkmaster)
+# chunkmaster
 
-This plugin can be used to pre-generate the region of a world around the spawn chunk.
+This plugin can be used to pre-generate the region of a world around the spawn chunk(s).
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
 and resumes when the server is empty again. The generation also auto-resumes after a server
 restart. The plugin tracks the ticks per second and pauses the generation when the tps
@@ -22,6 +22,11 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 
 ```yaml
 generation:
+
+  # If set to true the plugin ignores the vanilla world border and doesn't stop
+  # the chunk generation when reaching it.
+  # The value should be a boolean <true/false>
+  ignore-worldborder: false
 
   # The maximum amount of chunks that are loaded before unloading and saving them.
   # Higher values mean higher generation speed but greater memory usage.

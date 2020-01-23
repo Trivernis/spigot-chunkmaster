@@ -1,7 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
-import org.bukkit.Chunk
 import org.bukkit.World
 
 class GenerationTaskSpigot(
@@ -33,7 +32,7 @@ class GenerationTaskSpigot(
             } else {
                 if (borderReached()) {
                     endReached = true
-                    endReachedCallback?.invoke()
+                    endReachedCallback?.invoke(this)
                     return
                 }
 

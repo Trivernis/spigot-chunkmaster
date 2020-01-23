@@ -3,20 +3,17 @@ package net.trivernis.chunkmaster
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
 import net.trivernis.chunkmaster.lib.generation.GenerationManager
-import net.trivernis.chunkmaster.lib.SqlUpdateManager
+import net.trivernis.chunkmaster.lib.SqliteManager
 import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import java.lang.Exception
-import java.sql.Connection
-import java.sql.DriverManager
 
 class Chunkmaster: JavaPlugin() {
-    lateinit var sqliteConnection: Connection
-    var dbname: String? = null
+    lateinit var sqliteManager: SqliteManager
     lateinit var generationManager: GenerationManager
     private lateinit var tpsTask: BukkitTask
-    var mspt = 50L      // keep track of the milliseconds per tick
+    var mspt = 20      // keep track of the milliseconds per tick
         private set
 
     /**
@@ -37,12 +34,18 @@ class Chunkmaster: JavaPlugin() {
 
         server.pluginManager.registerEvents(ChunkmasterEvents(this, server), this)
 
-        tpsTask = server.scheduler.runTaskTimer(this, Runnable {
-            val start = System.currentTimeMillis()
-            server.scheduler.runTaskLater(this, Runnable {
-                mspt = System.currentTimeMillis() - start
-            }, 1)
-        }, 1, 300)
+        if (PaperLib.isPaper() && PaperLib.getMinecraftPatchVersion() >= 225) {
+            tpsTask = server.scheduler.runTaskTimer(this, Runnable {
+                mspt = 1000/server.currentTick   // use papers exposed tick rather than calculating it
+            }, 1, 300)
+        } else {
+            tpsTask = server.scheduler.runTaskTimer(this, Runnable {
+                val start = System.currentTimeMillis()
+                server.scheduler.runTaskLater(this, Runnable {
+                    mspt = (System.currentTimeMillis() - start).toInt()
+                }, 1)
+            }, 1, 300)
+        }
     }
 
     /**
@@ -51,7 +54,6 @@ class Chunkmaster: JavaPlugin() {
     override fun onDisable() {
         logger.info("Stopping all generation tasks...")
         generationManager.stopAll()
-        sqliteConnection.close()
     }
 
     /**
@@ -66,6 +68,8 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.pause-on-join", true)
         config.addDefault("generation.max-pending-chunks", 10)
         config.addDefault("generation.max-loaded-chunks", 10)
+        config.addDefault("generation.ignore-worldborder", false)
+        config.addDefault("database.filename", "chunkmaster.db")
         config.options().copyDefaults(true)
         saveConfig()
     }
@@ -76,13 +80,8 @@ class Chunkmaster: JavaPlugin() {
     private fun initDatabase() {
         logger.info("Initializing Database...")
         try {
-            Class.forName("org.sqlite.JDBC")
-            sqliteConnection = DriverManager.getConnection("jdbc:sqlite:${dataFolder.absolutePath}/chunkmaster.db")
-            logger.info("Database connection established.")
-
-            val updateManager = SqlUpdateManager(sqliteConnection, this)
-            updateManager.checkUpdate()
-            updateManager.performUpdate()
+            this.sqliteManager = SqliteManager( this)
+            sqliteManager.init()
             logger.info("Database fully initialized.")
         } catch(e: Exception) {
             logger.warning("Failed to init database: ${e.message}")

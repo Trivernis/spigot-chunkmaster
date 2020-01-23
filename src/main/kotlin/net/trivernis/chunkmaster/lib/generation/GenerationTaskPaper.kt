@@ -4,7 +4,6 @@ import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.Chunk
 import org.bukkit.World
 import java.util.concurrent.CompletableFuture
-import io.papermc.lib.PaperLib
 
 class GenerationTaskPaper(
     private val plugin: Chunkmaster, override val world: World,
@@ -38,28 +37,28 @@ class GenerationTaskPaper(
             } else if (pendingChunks.size < maxPendingChunks) {   // if more than 10 chunks are pending, wait.
                 if (borderReached()) {
                     endReached = true
-                    endReachedCallback?.invoke()
+                    endReachedCallback?.invoke(this)
                     return
                 }
 
                 var chunk = nextChunkCoordinates
                 for (i in 1 until chunkSkips) {
-                    if (PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
                         chunk = nextChunkCoordinates
                     } else {
                         break
                     }
                 }
 
-                if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
+                if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                     for (i in 0 until minOf(chunksPerStep, (stopAfter - count) - 1)) {
-                        if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
-                            pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                        if (!world.isChunkGenerated(chunk.x, chunk.z)) {
+                            pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                         }
                         chunk = nextChunkCoordinates
                     }
-                    if (!PaperLib.isChunkGenerated(world, chunk.x, chunk.z)) {
-                        pendingChunks.add(PaperLib.getChunkAtAsync(world, chunk.x, chunk.z, true))
+                    if (!world.isChunkGenerated(chunk.x, chunk.z)) {
+                        pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                     }
                 }
                 lastChunkCoords = chunk
