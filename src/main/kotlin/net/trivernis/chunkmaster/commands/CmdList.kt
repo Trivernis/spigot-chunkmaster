@@ -50,7 +50,9 @@ class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
                 response.append("\n - ").color(ChatColor.WHITE).bold(false)
                     .append("#${task.id}").color(ChatColor.BLUE).append(" - ").color(ChatColor.WHITE)
                     .append(genTask.world.name).color(ChatColor.GREEN).append(" - Progress: ").color(ChatColor.WHITE)
-                    .append("${genTask.count} chunks").color(ChatColor.BLUE)
+                    .append("${"%.1f".format(genTask.count)} chunks").color(ChatColor.BLUE)
+                    .append(", ETA: ").color(ChatColor.WHITE)
+                    .append("")
 
                 if (genTask.stopAfter > 0) {
                     response.append(" (${(genTask.count.toDouble()/genTask.stopAfter.toDouble())*100}%).")

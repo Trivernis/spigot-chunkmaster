@@ -47,12 +47,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             )
 
             var id = 0
-            chunkmaster.sqliteManager.executeStatement(
-                """
-            SELECT id FROM generation_tasks ORDER BY id DESC LIMIT 1
-        """.trimIndent(),
-                HashMap()
-            ) {
+            chunkmaster.sqliteManager.executeStatement("""
+                SELECT id FROM generation_tasks ORDER BY id DESC LIMIT 1
+                """.trimIndent(), HashMap()) {
                 it.next()
                 id = it.getInt("id")
             }
@@ -114,11 +111,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         }
         if (taskEntry != null) {
             taskEntry.cancel()
-            chunkmaster.sqliteManager.executeStatement(
-                """
+            chunkmaster.sqliteManager.executeStatement("""
                 DELETE FROM generation_tasks WHERE id = ?;
-            """.trimIndent(),
-                HashMap(mapOf(1 to taskEntry.id)),
+                """.trimIndent(), HashMap(mapOf(1 to taskEntry.id)),
                 null
             )
 
@@ -171,8 +166,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Starts all generation tasks.
      */
     fun startAll() {
-        chunkmaster.sqliteManager.executeStatement("SELECT * FROM generation_tasks", HashMap()) {
-            val res = it
+        chunkmaster.sqliteManager.executeStatement("SELECT * FROM generation_tasks", HashMap()) { res ->
             while (res.next()) {
                 try {
                     val id = res.getInt("id")
