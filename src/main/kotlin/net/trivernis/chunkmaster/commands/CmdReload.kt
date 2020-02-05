@@ -23,12 +23,11 @@ class CmdReload(private val chunkmaster: Chunkmaster): Subcommand {
      * Reload command to reload the config and restart the tasks.
      */
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
-        sender.spigot().sendMessage(*ComponentBuilder("Reloading config and restarting tasks...")
-            .color(ChatColor.YELLOW).create())
+        sender.sendMessage(chunkmaster.langManager.getLocalized("CONFIG_RELOADING"))
         chunkmaster.generationManager.stopAll()
         chunkmaster.reloadConfig()
         chunkmaster.generationManager.startAll()
-        sender.spigot().sendMessage(*ComponentBuilder("Config reload complete!").color(ChatColor.GREEN).create())
+        sender.sendMessage(chunkmaster.langManager.getLocalized("CONFIG_RELOADED"))
         return true
     }
 }

@@ -1,5 +1,6 @@
 package net.trivernis.chunkmaster.lib
 import net.trivernis.chunkmaster.Chunkmaster
+import java.io.BufferedReader
 import java.io.File
 import java.lang.Exception
 import java.util.Properties

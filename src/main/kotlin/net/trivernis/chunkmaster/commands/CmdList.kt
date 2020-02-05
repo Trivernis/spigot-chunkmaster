@@ -4,6 +4,7 @@ import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
+import net.trivernis.chunkmaster.lib.generation.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
@@ -27,39 +28,33 @@ class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
         val pausedTasks = chunkmaster.generationManager.pausedTasks
 
         if (runningTasks.isEmpty() && pausedTasks.isEmpty()) {
-            sender.spigot().sendMessage(*ComponentBuilder("There are no generation tasks.")
-                .color(ChatColor.BLUE).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("NO_GENERATION_TASKS"))
         } else if (runningTasks.isEmpty()) {
-            val response = ComponentBuilder("Currently paused generation tasks:").color(ChatColor.WHITE).bold(true)
+            var response = chunkmaster.langManager.getLocalized("PAUSED_TASKS_HEADER")
             for (taskEntry in pausedTasks) {
-                val genTask = taskEntry.generationTask
-                response.append("\n - ").color(ChatColor.WHITE).bold(false)
-                response.append("#${taskEntry.id}").color(ChatColor.BLUE).append(" - ").color(ChatColor.WHITE)
-                response.append(genTask.world.name).color(ChatColor.GREEN).append(" - Progress: ").color(ChatColor.WHITE)
-                response.append("${genTask.count} chunks").color(ChatColor.BLUE)
-
-                if (genTask.stopAfter > 0) {
-                    response.append(" (${(genTask.count.toDouble()/genTask.stopAfter.toDouble())*100}%).")
-                }
+                response += getGenerationEntry(taskEntry)
             }
-            sender.spigot().sendMessage(*response.create())
+            sender.sendMessage(response)
         } else {
-            val response = ComponentBuilder("Currently running generation tasks:").color(ChatColor.WHITE).bold(true)
+            var response = chunkmaster.langManager.getLocalized("RUNNING_TASKS_HEADER")
             for (task in runningTasks) {
-                val genTask = task.generationTask
-                response.append("\n - ").color(ChatColor.WHITE).bold(false)
-                    .append("#${task.id}").color(ChatColor.BLUE).append(" - ").color(ChatColor.WHITE)
-                    .append(genTask.world.name).color(ChatColor.GREEN).append(" - Progress: ").color(ChatColor.WHITE)
-                    .append("${"%.1f".format(genTask.count)} chunks").color(ChatColor.BLUE)
-                    .append(", ETA: ").color(ChatColor.WHITE)
-                    .append("")
-
-                if (genTask.stopAfter > 0) {
-                    response.append(" (${(genTask.count.toDouble()/genTask.stopAfter.toDouble())*100}%).")
-                }
+                response += getGenerationEntry(task)
             }
-            sender.spigot().sendMessage(*response.create())
+            sender.sendMessage(response)
         }
         return true
+    }
+
+    /**
+     * Returns the report string for one generation task
+     */
+    private fun getGenerationEntry(task: TaskEntry): String {
+        val genTask = task.generationTask
+        val percentage = if (genTask.stopAfter > 0)
+            " (%.1f".format((genTask.count.toDouble()/genTask.stopAfter.toDouble())*100) + "%)."
+        else
+            ""
+        return "\n" + chunkmaster.langManager.getLocalized("TASKS_ENTRY",
+            task.id, genTask.world.name, genTask.count, percentage)
     }
 }

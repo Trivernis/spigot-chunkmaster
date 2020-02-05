@@ -32,16 +32,14 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         return if (args.isNotEmpty() && args[0].toIntOrNull() != null) {
             if (chunkmaster.generationManager.removeTask(args[0].toInt())) {
-                sender.sendMessage("Task ${args[0]} canceled.")
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELED", args[0]))
                 true
             } else {
-                sender.spigot().sendMessage(*ComponentBuilder("Task ${args[0]} not found!")
-                    .color(ChatColor.RED).create())
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_NOT_FOUND", args[0]))
                 false
             }
         } else {
-            sender.spigot().sendMessage(*ComponentBuilder("You need to provide a task id to cancel.")
-                .color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"));
             false
         }
     }

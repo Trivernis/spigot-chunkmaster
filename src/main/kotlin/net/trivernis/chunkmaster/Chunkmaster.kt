@@ -56,7 +56,7 @@ class Chunkmaster: JavaPlugin() {
      * Stop all tasks and close database connection on disable
      */
     override fun onDisable() {
-        logger.info("Stopping all generation tasks...")
+        logger.info(langManager.getLocalized("STOPPING_ALL_TASKS"))
         generationManager.stopAll()
     }
 
@@ -83,13 +83,13 @@ class Chunkmaster: JavaPlugin() {
      * Initializes the database
      */
     private fun initDatabase() {
-        logger.info("Initializing Database...")
+        logger.info(langManager.getLocalized("DB_INIT"))
         try {
             this.sqliteManager = SqliteManager( this)
             sqliteManager.init()
-            logger.info("Database fully initialized.")
+            logger.info(langManager.getLocalized("DB_INIT_FINISHED"))
         } catch(e: Exception) {
-            logger.warning("Failed to init database: ${e.message}")
+            logger.warning(langManager.getLocalized("DB_INIT_EROR", e.message!!))
         }
     }
 }

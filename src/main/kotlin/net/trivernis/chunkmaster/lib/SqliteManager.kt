@@ -36,7 +36,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
             return DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
                     "${chunkmaster.config.getString("database.filename")}")
         } catch (e: Exception) {
-            chunkmaster.logger.severe("Could not get database connection.")
+            chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("DATABASE_CONNECTION_ERROR"))
             chunkmaster.logger.severe(e.message)
         }
         return null
@@ -92,13 +92,13 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 }
                 statement.close()
             } catch (e: Exception) {
-                chunkmaster.logger.severe("An error occured on sql $sql. ${e.message}")
+                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("SQL_ERROR", e.message!!))
                 chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             } finally {
                 connection.close()
             }
         } else {
-            chunkmaster.logger.severe("Could not execute sql $sql. No database connection established.")
+            chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("NO_DATABASE_CONNECTION"))
         }
     }
 
@@ -114,10 +114,10 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                     tableDef += "${column.first} ${column.second},"
                 }
                 tableDef = tableDef.substringBeforeLast(",") + ");"
-                chunkmaster.logger.info("Creating table $table with definition $tableDef")
+                chunkmaster.logger.finest(chunkmaster.langManager.getLocalized("CREATE_TABLE_DEFINITION", table, tableDef))
                 executeStatement(tableDef, HashMap(), null)
             } catch (e: Exception) {
-                chunkmaster.logger.severe("Error creating table $table.")
+                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TABLE_CREATE_ERROR", table))
                 chunkmaster.logger.severe(e.message)
                 chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             }
@@ -126,9 +126,9 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
             val updateSql = "ALTER TABLE ${table.first} ADD COLUMN ${table.second.first} ${table.second.second}"
             try {
                 executeStatement(updateSql, HashMap(), null)
-                chunkmaster.logger.info("Updated table ${table.first} with sql $updateSql")
+                chunkmaster.logger.finest(chunkmaster.langManager.getLocalized("UPDATE_TABLE_DEFINITION", table.first, updateSql))
             } catch (e: Exception) {
-                chunkmaster.logger.severe("Failed to update table ${table.first} with sql $updateSql")
+                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("UPDATE_TABLE_FAILED", table.first, updateSql))
                 chunkmaster.logger.severe(e.message)
                 chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             }

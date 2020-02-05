@@ -22,15 +22,10 @@ class CmdPause(private val chunkmaster: Chunkmaster) : Subcommand {
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         return if (!chunkmaster.generationManager.paused) {
             chunkmaster.generationManager.pauseAll()
-            sender.spigot().sendMessage(
-                *ComponentBuilder("Paused all generation tasks.")
-                    .color(ChatColor.BLUE).create()
-            )
+            sender.sendMessage(chunkmaster.langManager.getLocalized("PAUSE_SUCCESS"))
             true
         } else {
-            sender.spigot().sendMessage(
-                *ComponentBuilder("The generation process is already paused.").color(ChatColor.RED).create()
-            )
+            sender.sendMessage(chunkmaster.langManager.getLocalized("ALREADY_PAUSED"))
             false
         }
     }
