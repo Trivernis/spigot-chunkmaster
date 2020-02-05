@@ -215,16 +215,28 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
+                val speed = task.generationSpeed!!
                 val percentage = if (genTask.stopAfter > 0) "(${"%.2f".format(
                     (genTask.count.toDouble() / genTask.stopAfter.toDouble()) * 100
                 )}%)" else ""
+                val eta = if (genTask.stopAfter > 0 && speed > 0) {
+                    val etaSeconds = (genTask.stopAfter - genTask.count).toDouble()/speed
+                    chunkmaster.logger.info(""+etaSeconds)
+                    val hours: Int = (etaSeconds/3600).toInt()
+                    val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
+                    val seconds: Int = (etaSeconds % 60).toInt()
+                    ", ETA: %d:%02d:%02d".format(hours, minutes, seconds)
+                } else {
+                    ""
+                }
                 chunkmaster.logger.info(chunkmaster.langManager.getLocalized(
                     "TASK_PERIODIC_REPORT",
                     task.id,
                     genTask.world.name,
                     genTask.count,
                     percentage,
-                    task.generationSpeed!!,
+                    eta,
+                    speed,
                     genTask.lastChunk.x,
                     genTask.lastChunk.z))
                 chunkmaster.sqliteManager.executeStatement(
