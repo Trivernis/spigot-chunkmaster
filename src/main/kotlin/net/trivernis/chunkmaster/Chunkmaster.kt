@@ -74,7 +74,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.max-loaded-chunks", 10)
         config.addDefault("generation.ignore-worldborder", false)
         config.addDefault("database.filename", "chunkmaster.db")
-        config.addDefault("language", "EN")
+        config.addDefault("language", "en")
         config.options().copyDefaults(true)
         saveConfig()
     }

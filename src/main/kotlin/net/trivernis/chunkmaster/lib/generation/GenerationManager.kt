@@ -55,7 +55,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             }
 
             generationTask.onEndReached {
-                chunkmaster.logger.info("Task #${id} finished after ${it.count} chunks.")
+                chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_FINISHED", id, it.count))
                 removeTask(id)
             }
 
@@ -86,7 +86,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         stopAfter: Int = -1
     ) {
         if (!paused) {
-            chunkmaster.logger.info("Resuming chunk generation task for world \"${world.name}\"")
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("RESUME_FOR_WORLD", world.name))
             val generationTask = createGenerationTask(world, center, last, stopAfter)
             val task = server.scheduler.runTaskTimer(
                 chunkmaster, generationTask, 200,  // 10 sec delay
@@ -94,7 +94,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             )
             tasks.add(RunningTaskEntry(id, task, generationTask))
             generationTask.onEndReached {
-                chunkmaster.logger.info("Task #${id} finished after ${generationTask.count} chunks.")
+                chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_FINISHED", id, generationTask.count))
                 removeTask(id)
             }
         }
@@ -134,7 +134,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Loads tasks from the database and resumes them
      */
     fun init() {
-        chunkmaster.logger.info("Creating task to load chunk generation Tasks later...")
+        chunkmaster.logger.info(chunkmaster.langManager.getLocalized("CREATE_DELAYED_LOAD"))
         server.scheduler.runTaskTimer(chunkmaster, Runnable {
             saveProgress()      // save progress every 30 seconds
         }, 600, 600)
@@ -157,7 +157,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             if (task.task.isCancelled) {
                 removalSet.add(task)
             }
-            chunkmaster.logger.info("Canceled task #${task.id}")
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_CANCELED", task.id))
         }
         tasks.removeAll(removalSet)
     }
@@ -178,13 +178,13 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                         resumeTask(world!!, center, last, id, stopAfter)
                     }
                 } catch (error: NullPointerException) {
-                    chunkmaster.logger.severe("Failed to load Task ${res.getInt("id")}.")
+                    chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", res.getInt("id")))
                 }
             }
         }
 
         if (tasks.isNotEmpty()) {
-            chunkmaster.logger.info("${tasks.size} saved tasks loaded.")
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_LOAD_SUCCESS", tasks.size))
         }
     }
 
@@ -215,16 +215,18 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                chunkmaster.logger.info(
-                    """Task #${task.id} running for "${genTask.world.name}".
-                    |Progress ${task.generationTask.count} chunks
-                    |${if (task.generationTask.stopAfter > 0) "(${"%.2f".format(
-                        (task.generationTask.count.toDouble() /
-                                task.generationTask.stopAfter.toDouble()) * 100
-                    )}%)" else ""}.
-                    | Speed: ${"%.1f".format(task.generationSpeed)} chunks/sec,
-                    |Last Chunk: ${genTask.lastChunk.x}, ${genTask.lastChunk.z}""".trimMargin("|").replace('\n', ' ')
-                )
+                val percentage = if (genTask.stopAfter > 0) "(${"%.2f".format(
+                    (genTask.count.toDouble() / genTask.stopAfter.toDouble()) * 100
+                )}%)" else ""
+                chunkmaster.logger.info(chunkmaster.langManager.getLocalized(
+                    "TASK_PERIODIC_REPORT",
+                    task.id,
+                    genTask.world.name,
+                    genTask.count,
+                    percentage,
+                    task.generationSpeed!!,
+                    genTask.lastChunk.x,
+                    genTask.lastChunk.z))
                 chunkmaster.sqliteManager.executeStatement(
                     """
                     UPDATE generation_tasks SET last_x = ?, last_z = ?
@@ -234,7 +236,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     null
                 )
             } catch (error: Exception) {
-                chunkmaster.logger.warning("Exception when saving task progress ${error.message}")
+                chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }
         }
     }

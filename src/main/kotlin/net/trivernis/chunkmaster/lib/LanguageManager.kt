@@ -3,19 +3,23 @@ import net.trivernis.chunkmaster.Chunkmaster
 import java.io.File
 import java.lang.Exception
 import java.util.Properties
-import java.util.logging.Level
 
 class LanguageManager(private val plugin: Chunkmaster) {
     private val langProps = Properties()
     private val languageFolder = "${plugin.dataFolder.absolutePath}/i18n"
     private var langFileLoaded = false
 
+    /**
+     * Loads the default properties file and then the language specific ones.
+     * If no lang-specific file is found in the plugins directory under i18n an attempt is made to
+     * load the file from inside the jar in i18n.
+     */
     fun loadProperties() {
         val language = plugin.config.getString("language")
         val langFile = "$languageFolder/$language.i18n.properties"
         val file = File(langFile)
         val loader = Thread.currentThread().contextClassLoader
-        val defaultStream = this.javaClass.getResourceAsStream("/DEFAULT.i18n.properties")
+        val defaultStream = this.javaClass.getResourceAsStream("/i18n/DEFAULT.i18n.properties")
         if (defaultStream != null) {
             langProps.load(defaultStream)
             defaultStream.close()
@@ -35,11 +39,22 @@ class LanguageManager(private val plugin: Chunkmaster) {
                 plugin.logger.fine(e.toString())
             }
         } else {
-            plugin.logger.warning("Language File $langFile could not be found!")
+            val inputStream = this.javaClass.getResourceAsStream("/i18n/$language.i18n.properties")
+            if (inputStream != null) {
+                langProps.load(inputStream)
+                langFileLoaded = true
+                inputStream.close()
+            } else {
+                plugin.logger.warning("Language File $langFile could not be found!")
+            }
         }
     }
 
-    fun getLocalized(key: String) {
-        langProps.getProperty(key)
+    /**
+     * Returns a localized message with replacements
+     */
+    fun getLocalized(key: String, vararg replacements: Any): String {
+        val localizedString = langProps.getProperty(key)
+        return String.format(localizedString, *replacements)
     }
 }

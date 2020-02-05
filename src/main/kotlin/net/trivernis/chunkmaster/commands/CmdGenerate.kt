@@ -79,8 +79,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                     stopAfter = getStopAfter(stopAfter, args[2])
                 }
             } else {
-                sender.spigot().sendMessage(
-                    *ComponentBuilder("You need to provide a world name").color(ChatColor.RED).create())
+                sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NAME_REQUIRED"))
                 return false
             }
         }
@@ -126,7 +125,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                 .append(worldName).color(ChatColor.GREEN).append(" not found!").color(ChatColor.RED).create())
             false
         } else {
-            sender.spigot().sendMessage(*ComponentBuilder("Task already exists!").color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ALREADY_EXISTS", worldName))
             return false
         }
     }
