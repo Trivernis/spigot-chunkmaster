@@ -22,12 +22,10 @@ class CmdResume(private val chunkmaster: Chunkmaster): Subcommand {
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         return if (chunkmaster.generationManager.paused) {
             chunkmaster.generationManager.resumeAll()
-            sender.spigot().sendMessage(
-                *ComponentBuilder("Resumed all generation tasks.").color(ChatColor.BLUE).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("RESUME_SUCCESS"))
             true
         } else {
-            sender.spigot().sendMessage(
-                *ComponentBuilder("There are no paused generation tasks.").color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("NOT_PAUSED"))
             false
         }
     }

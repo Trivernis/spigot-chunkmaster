@@ -1,7 +1,5 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.command.Command
@@ -79,8 +77,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                     stopAfter = getStopAfter(stopAfter, args[2])
                 }
             } else {
-                sender.spigot().sendMessage(
-                    *ComponentBuilder("You need to provide a world name").color(ChatColor.RED).create())
+                sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NAME_REQUIRED"))
                 return false
             }
         }
@@ -116,17 +113,14 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
         val allTasks = chunkmaster.generationManager.allTasks
         return if (world != null && (allTasks.find { it.generationTask.world == world }) == null) {
             chunkmaster.generationManager.addTask(world, stopAfter)
-            sender.spigot().sendMessage(*ComponentBuilder("Generation task for world ").color(ChatColor.BLUE)
-                .append(worldName).color(ChatColor.GREEN).append(" until ").color(ChatColor.BLUE)
-                .append(if (stopAfter > 0) "$stopAfter chunks" else "WorldBorder").color(ChatColor.GREEN)
-                .append(" successfully created").color(ChatColor.BLUE).create())
+            sender.sendMessage(chunkmaster.langManager
+                .getLocalized("TASK_CREATION_SUCCESS", worldName, if (stopAfter > 0) "$stopAfter chunks" else "WorldBorder"))
             true
         } else if (world == null){
-            sender.spigot().sendMessage(*ComponentBuilder("World ").color(ChatColor.RED)
-                .append(worldName).color(ChatColor.GREEN).append(" not found!").color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName));
             false
         } else {
-            sender.spigot().sendMessage(*ComponentBuilder("Task already exists!").color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ALREADY_EXISTS", worldName))
             return false
         }
     }

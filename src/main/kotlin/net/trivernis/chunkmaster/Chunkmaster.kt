@@ -2,6 +2,7 @@ package net.trivernis.chunkmaster
 
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.commands.*
+import net.trivernis.chunkmaster.lib.LanguageManager
 import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import net.trivernis.chunkmaster.lib.SqliteManager
 import org.bstats.bukkit.Metrics
@@ -12,6 +13,7 @@ import java.lang.Exception
 class Chunkmaster: JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
     lateinit var generationManager: GenerationManager
+    lateinit var langManager: LanguageManager
     private lateinit var tpsTask: BukkitTask
     var mspt = 20      // keep track of the milliseconds per tick
         private set
@@ -25,6 +27,8 @@ class Chunkmaster: JavaPlugin() {
 
         val metrics = Metrics(this)
 
+        langManager = LanguageManager(this)
+        langManager.loadProperties()
         initDatabase()
         generationManager = GenerationManager(this, server)
         generationManager.init()
@@ -52,7 +56,7 @@ class Chunkmaster: JavaPlugin() {
      * Stop all tasks and close database connection on disable
      */
     override fun onDisable() {
-        logger.info("Stopping all generation tasks...")
+        logger.info(langManager.getLocalized("STOPPING_ALL_TASKS"))
         generationManager.stopAll()
     }
 
@@ -70,6 +74,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.max-loaded-chunks", 10)
         config.addDefault("generation.ignore-worldborder", false)
         config.addDefault("database.filename", "chunkmaster.db")
+        config.addDefault("language", "en")
         config.options().copyDefaults(true)
         saveConfig()
     }
@@ -78,13 +83,13 @@ class Chunkmaster: JavaPlugin() {
      * Initializes the database
      */
     private fun initDatabase() {
-        logger.info("Initializing Database...")
+        logger.info(langManager.getLocalized("DB_INIT"))
         try {
             this.sqliteManager = SqliteManager( this)
             sqliteManager.init()
-            logger.info("Database fully initialized.")
+            logger.info(langManager.getLocalized("DB_INIT_FINISHED"))
         } catch(e: Exception) {
-            logger.warning("Failed to init database: ${e.message}")
+            logger.warning(langManager.getLocalized("DB_INIT_EROR", e.message!!))
         }
     }
 }

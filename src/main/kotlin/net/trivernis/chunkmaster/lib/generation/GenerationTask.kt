@@ -4,13 +4,11 @@ import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Spiral
 import org.bukkit.Chunk
 import org.bukkit.World
-
 /**
  * Interface for generation tasks.
  */
 abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates) :
     Runnable {
-
     abstract val stopAfter: Int
     abstract val world: World
     abstract val count: Int

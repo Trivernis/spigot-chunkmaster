@@ -3,13 +3,14 @@ package net.trivernis.chunkmaster.commands
 import io.papermc.lib.PaperLib
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ComponentBuilder
+import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdTpChunk: Subcommand {
+class CmdTpChunk(private val chunkmaster: Chunkmaster): Subcommand {
     override val name = "tpchunk"
 
     override fun onTabComplete(
@@ -37,15 +38,13 @@ class CmdTpChunk: Subcommand {
                 } else {
                     sender.teleport(location)
                 }
-                sender.spigot().sendMessage(*ComponentBuilder("You have been teleportet to chunk")
-                    .color(ChatColor.YELLOW).append("${args[0]}, ${args[1]}").color(ChatColor.BLUE).create())
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TELEPORTED", args[0], args[1]))
                 return true
             } else {
                 return false
             }
         } else {
-            sender.spigot().sendMessage(*ComponentBuilder("This command can only be executed by a player!")
-                .color(ChatColor.RED).create())
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TP_ONLY_PLAYER"))
             return false
         }
     }

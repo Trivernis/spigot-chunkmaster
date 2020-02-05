@@ -44,17 +44,11 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
                 return if (commands.containsKey(args[0])) {
                     commands[args[0]]!!.execute(sender, args.slice(1 until args.size))
                 } else {
-                    sender.spigot().sendMessage(
-                        *ComponentBuilder("Subcommand ").color(ChatColor.RED)
-                            .append(args[0]).color(ChatColor.GREEN).append(" not found").color(ChatColor.RED).create()
-                    )
+                    sender.sendMessage(chunkmaster.langManager.getLocalized("SUBCOMMAND_NOT_FOUND", args[0]))
                     false
                 }
             } else {
-                sender.spigot().sendMessage(
-                    *ComponentBuilder("You do not have permission!")
-                        .color(ChatColor.RED).create()
-                )
+                sender.sendMessage(chunkmaster.langManager.getLocalized("NO_PERMISSION"))
             }
             return true
         } else {
@@ -84,7 +78,7 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
         val cmdReload = CmdReload(chunkmaster)
         commands[cmdReload.name] = cmdReload
 
-        val cmdTpChunk = CmdTpChunk()
+        val cmdTpChunk = CmdTpChunk(chunkmaster)
         commands[cmdTpChunk.name] = cmdTpChunk
     }
 }
