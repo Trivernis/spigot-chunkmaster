@@ -1,13 +1,10 @@
 package net.trivernis.chunkmaster.lib
 import net.trivernis.chunkmaster.Chunkmaster
-import java.io.File
 import java.lang.Exception
 import java.util.Properties
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang.StringEscapeUtils
-import java.io.InputStream
-import java.io.StringReader
-import java.io.StringWriter
+import java.io.*
 
 class LanguageManager(private val plugin: Chunkmaster) {
     private val langProps = Properties()
@@ -66,10 +63,7 @@ class LanguageManager(private val plugin: Chunkmaster) {
     /**
      * Reads a properties file as utf-8 and returns a string reader for the contents
      */
-    private fun getReaderForProperties(stream: InputStream): StringReader {
-        val writer = StringWriter();
-        IOUtils.copy(stream, writer, "UTF-8")
-        val escapedStringContent = StringEscapeUtils.escapeJava(writer.toString())
-        return StringReader(escapedStringContent)
+    private fun getReaderForProperties(stream: InputStream): Reader {
+        return BufferedReader(InputStreamReader(stream, "UTF-8"))
     }
 }
