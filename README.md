@@ -21,6 +21,16 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 ## Config
 
 ```yaml
+
+# The language settings.
+# Supported out of the box are german (de) and english (en).
+# Additional languages can be configured in the plugins folder under i18n.
+# The file name must be in the format <language>.i18n.properties and the content
+# must be in the java-property-file format.
+# For non-defined translations the default (english) version is used.
+# For built-in support please create a PullRequest with your translation.
+language: en
+
 generation:
 
   # If set to true the plugin ignores the vanilla world border and doesn't stop
