@@ -1,9 +1,13 @@
 package net.trivernis.chunkmaster.lib
 import net.trivernis.chunkmaster.Chunkmaster
-import java.io.BufferedReader
 import java.io.File
 import java.lang.Exception
 import java.util.Properties
+import org.apache.commons.io.IOUtils
+import org.apache.commons.lang.StringEscapeUtils
+import java.io.InputStream
+import java.io.StringReader
+import java.io.StringWriter
 
 class LanguageManager(private val plugin: Chunkmaster) {
     private val langProps = Properties()
@@ -22,7 +26,7 @@ class LanguageManager(private val plugin: Chunkmaster) {
         val loader = Thread.currentThread().contextClassLoader
         val defaultStream = this.javaClass.getResourceAsStream("/i18n/DEFAULT.i18n.properties")
         if (defaultStream != null) {
-            langProps.load(defaultStream)
+            langProps.load(getReaderForProperties(defaultStream))
             defaultStream.close()
         } else {
             plugin.logger.severe("Couldn't load default language properties.")
@@ -31,7 +35,7 @@ class LanguageManager(private val plugin: Chunkmaster) {
             try {
                 val inputStream = loader.getResourceAsStream(langFile)
                 if (inputStream != null) {
-                    langProps.load(inputStream)
+                    langProps.load(getReaderForProperties(inputStream))
                     langFileLoaded = true
                     inputStream.close()
                 }
@@ -42,7 +46,7 @@ class LanguageManager(private val plugin: Chunkmaster) {
         } else {
             val inputStream = this.javaClass.getResourceAsStream("/i18n/$language.i18n.properties")
             if (inputStream != null) {
-                langProps.load(inputStream)
+                langProps.load(getReaderForProperties(inputStream))
                 langFileLoaded = true
                 inputStream.close()
             } else {
@@ -57,5 +61,15 @@ class LanguageManager(private val plugin: Chunkmaster) {
     fun getLocalized(key: String, vararg replacements: Any): String {
         val localizedString = langProps.getProperty(key)
         return String.format(localizedString, *replacements)
+    }
+
+    /**
+     * Reads a properties file as utf-8 and returns a string reader for the contents
+     */
+    private fun getReaderForProperties(stream: InputStream): StringReader {
+        val writer = StringWriter();
+        IOUtils.copy(stream, writer, "UTF-8")
+        val escapedStringContent = StringEscapeUtils.escapeJava(writer.toString())
+        return StringReader(escapedStringContent)
     }
 }
