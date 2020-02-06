@@ -2,8 +2,6 @@ package net.trivernis.chunkmaster.lib
 import net.trivernis.chunkmaster.Chunkmaster
 import java.lang.Exception
 import java.util.Properties
-import org.apache.commons.io.IOUtils
-import org.apache.commons.lang.StringEscapeUtils
 import java.io.*
 
 class LanguageManager(private val plugin: Chunkmaster) {
