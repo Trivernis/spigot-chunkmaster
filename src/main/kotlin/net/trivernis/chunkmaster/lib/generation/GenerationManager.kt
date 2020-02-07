@@ -221,7 +221,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 )}%)" else ""
                 val eta = if (genTask.stopAfter > 0 && speed > 0) {
                     val etaSeconds = (genTask.stopAfter - genTask.count).toDouble()/speed
-                    chunkmaster.logger.info(""+etaSeconds)
                     val hours: Int = (etaSeconds/3600).toInt()
                     val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
                     val seconds: Int = (etaSeconds % 60).toInt()
