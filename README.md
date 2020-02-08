@@ -6,7 +6,19 @@ and resumes when the server is empty again. The generation also auto-resumes aft
 restart. The plugin tracks the ticks per second and pauses the generation when the tps
 is lower than 2 (configurable).
 
-## Commands
+## Built with
+
+- [Gradle](https://gradle.org/) - Dependency Management and Build Tool
+- [Sqlite JDBC](https://bitbucket.org/xerial/sqlite-jdbc/) - Database Driver for JDBC
+- [bStats](https://bstats.org/) - Statistical Insights
+
+## Installing
+
+Just download the jar from the latest release and place it into the servers plugins folder.
+
+## Usage and Configuration
+
+### Commands
 
 All features can be accessed with the command `/chunkmaster` or the aliases `/chm`, `chunkm`, `cmaster`.
 
@@ -18,7 +30,7 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/chunkmaster reload` Reloads the configuration file.
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
 
-## Config
+### Config
 
 ```yaml
 
@@ -83,8 +95,16 @@ generation:
   pause-on-join: true
 ```
 
-## Spigot and Paper
+### Spigot and Paper
 
 The plugin works on spigot and paper servers but is significantly faster on paper servers
 (because it profits from asynchronous chunk loading an the better implementation of the
 isChunkGenerated method).
+
+## License
+
+This project is licensed under the GPLv3.0 License - see the [License.md](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
+
+## bStats
+
+[![Plugin statistics](https://bstats.org/signatures/bukkit/chunkmaster.svg)](https://bstats.org/plugin/bukkit/Chunkmaster/5639)
