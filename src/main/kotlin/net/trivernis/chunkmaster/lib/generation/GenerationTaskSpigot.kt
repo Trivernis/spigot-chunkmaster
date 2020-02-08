@@ -2,6 +2,7 @@ package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.World
+import java.lang.Exception
 
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster, override val world: World,
@@ -62,7 +63,11 @@ class GenerationTaskSpigot(
     override fun cancel() {
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {
-                chunk.unload(true)
+                try {
+                    chunk.unload(true)
+                } catch (e: Exception) {
+                    plugin.logger.severe(e.toString())
+                }
             }
         }
     }

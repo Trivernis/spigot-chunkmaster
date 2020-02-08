@@ -17,7 +17,8 @@ abstract class GenerationTask(plugin: Chunkmaster, centerChunk: ChunkCoordinates
     protected val spiral: Spiral =
         Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     protected val loadedChunks: HashSet<Chunk> = HashSet()
-    protected var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
+    var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
+        protected set
     protected val chunkSkips = plugin.config.getInt("generation.chunk-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
