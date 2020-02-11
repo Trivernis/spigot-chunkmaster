@@ -17,6 +17,8 @@ commands:
       /<command> resume - resumes all generation tasks
       /<command> reload - reloads the configuration and restarts all tasks
       /<command> tpchunk <chunkX> <chunkZ> - teleports you to the chunk with the given chunk coordinates
+      /<command> setCenter [<world>] <chunkX> <chunkZ> - sets the center chunk of the world
+      /<command> getCenter [<world>] - returns the center chunk of the world
     aliases:
       - chm
       - chunkm
@@ -42,6 +44,12 @@ permissions:
     default: op
   chunkmaster.tpchunk:
     description: Allows the tpchunk subcommand.
+    default: op
+  chunkmaster.setcenter:
+    description: Allows the setCenter subcommand.
+    default: op
+  chunkmaster.getcenter:
+    description: Allows the getCenter subcommand.
     default: op
   chunkmaster.chunkmaster:
     description: Allows Chunkmaster commands.

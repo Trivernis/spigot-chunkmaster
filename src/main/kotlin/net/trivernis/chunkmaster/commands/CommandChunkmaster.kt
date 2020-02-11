@@ -40,7 +40,7 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
      */
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isNotEmpty()) {
-            if (sender.hasPermission("chunkmaster.${args[0]}")) {
+            if (sender.hasPermission("chunkmaster.${args[0].toLowerCase()}")) {
                 return if (commands.containsKey(args[0])) {
                     commands[args[0]]!!.execute(sender, args.slice(1 until args.size))
                 } else {
@@ -80,5 +80,11 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
 
         val cmdTpChunk = CmdTpChunk(chunkmaster)
         commands[cmdTpChunk.name] = cmdTpChunk
+
+        val cmdSetCenter = CmdSetCenter(chunkmaster)
+        commands[cmdSetCenter.name] = cmdSetCenter
+
+        val cmdGetCenter = CmdGetCenter(chunkmaster)
+        commands[cmdGetCenter.name] = cmdGetCenter
     }
 }

@@ -22,19 +22,33 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 Pair("world", "text UNIQUE NOT NULL DEFAULT 'world'"),
                 Pair("stop_after", "integer DEFAULT -1")
             )
+        ),
+        Pair(
+            "world_properties",
+            listOf(
+                Pair("name", "text PRIMARY KEY"),
+                Pair("center_x", "integer NOT NULL DEFAULT 0"),
+                Pair("center_z", "integer NOT NULL DEFAULT 0")
+            )
         )
     )
     private val needUpdate = HashSet<Pair<String, Pair<String, String>>>()
     private val needCreation = HashSet<String>()
+    private var connection: Connection? = null
+    private var activeTasks = 0
 
     /**
      * Returns the connection to the database
      */
     fun getConnection(): Connection? {
+        if (this.connection != null) {
+            return this.connection
+        }
         try {
             Class.forName("org.sqlite.JDBC")
-            return DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
+            this.connection = DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
                     "${chunkmaster.config.getString("database.filename")}")
+            return this.connection
         } catch (e: Exception) {
             chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("DATABASE_CONNECTION_ERROR"))
             chunkmaster.logger.severe(e.message)
@@ -79,6 +93,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
      */
     fun executeStatement(sql: String, values: HashMap<Int, Any>, callback: ((ResultSet) -> Unit)?) {
         val connection = getConnection()
+        activeTasks++
         if (connection != null) {
             try {
                 val statement = connection.prepareStatement(sql)
@@ -92,10 +107,14 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 }
                 statement.close()
             } catch (e: Exception) {
-                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("SQL_ERROR", e.message!!))
+                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("SQL_ERROR", e.toString()))
                 chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             } finally {
-                connection.close()
+                activeTasks--
+                if (activeTasks == 0) {
+                    connection.close()
+                    this.connection = null
+                }
             }
         } else {
             chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("NO_DATABASE_CONNECTION"))

@@ -29,6 +29,29 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
+- `/<command> setCenter [<world>] <chunkX> <chunkZ>` - sets the center chunk of the world
+- `/<command> getCenter [<world>]` - returns the center chunk of the world
+
+#### Examples
+**Generate a 100 chunks * 100 chunks square around the spawn:**
+
+`/chm generate [world] 100 diameter`
+
+**Generate a 100 blocks * 100 blocks square around the spawn:**
+
+`/chm generate [world] 50 blockradius`
+
+**Generate 100 Blocks in every direction from the spawn:**
+
+`/chm generate [world] 100 blockradius`
+
+**Generate 200 Chunks in every direction from the spawn:**
+
+`/chm generate [world] 200 radius`
+
+**Generate 1000 Chunks in total around the spawn:**
+
+`/chm generate [world] 1000`
 
 ### Config
 
