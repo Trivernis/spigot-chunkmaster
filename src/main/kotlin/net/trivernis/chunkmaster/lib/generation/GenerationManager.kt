@@ -12,6 +12,12 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
     val allTasks: HashSet<TaskEntry>
         get() {
+            if (this.tasks.isEmpty() && this.pausedTasks.isEmpty()) {
+                this.startAll()
+                if (!server.onlinePlayers.isEmpty()) {
+                    this.pauseAll()
+                }
+            }
             val all = HashSet<TaskEntry>()
             all.addAll(pausedTasks)
             all.addAll(tasks)
@@ -141,8 +147,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             saveProgress()      // save progress every 30 seconds
         }, 600, 600)
         server.scheduler.runTaskLater(chunkmaster, Runnable {
-            if (server.onlinePlayers.isEmpty()) {
-                startAll()     // run startAll after 10 seconds if empty
+            this.startAll()
+            if (!server.onlinePlayers.isEmpty()) {
+                this.pauseAll()
             }
         }, 600)
     }
