@@ -8,6 +8,8 @@ import net.trivernis.chunkmaster.lib.SqliteManager
 import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
+import org.dynmap.DynmapAPI
+import org.dynmap.DynmapCommonAPI
 import java.lang.Exception
 
 class Chunkmaster: JavaPlugin() {
@@ -15,6 +17,8 @@ class Chunkmaster: JavaPlugin() {
     lateinit var generationManager: GenerationManager
     lateinit var langManager: LanguageManager
     private lateinit var tpsTask: BukkitTask
+    var dynmapApi: DynmapAPI? = null
+        private set
     var mspt = 20      // keep track of the milliseconds per tick
         private set
 
@@ -29,6 +33,9 @@ class Chunkmaster: JavaPlugin() {
 
         langManager = LanguageManager(this)
         langManager.loadProperties()
+
+        this.dynmapApi = getDynmap()
+
         initDatabase()
         generationManager = GenerationManager(this, server)
         generationManager.init()
@@ -75,6 +82,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.ignore-worldborder", false)
         config.addDefault("database.filename", "chunkmaster.db")
         config.addDefault("language", "en")
+        config.addDefault("dynmap", true)
         config.options().copyDefaults(true)
         saveConfig()
     }
@@ -90,6 +98,16 @@ class Chunkmaster: JavaPlugin() {
             logger.info(langManager.getLocalized("DB_INIT_FINISHED"))
         } catch(e: Exception) {
             logger.warning(langManager.getLocalized("DB_INIT_EROR", e.message!!))
+        }
+    }
+
+    private fun getDynmap(): DynmapAPI? {
+        val dynmap = server.pluginManager.getPlugin("dynmap")
+        return if (dynmap != null && dynmap is DynmapAPI) {
+            logger.info(langManager.getLocalized("PLUGIN_DETECTED", "dynmap", dynmap.dynmapVersion))
+            dynmap
+        } else {
+            null
         }
     }
 }

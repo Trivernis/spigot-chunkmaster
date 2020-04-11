@@ -2,6 +2,7 @@ package net.trivernis.chunkmaster.lib.generation
 
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
+import org.bukkit.Chunk
 import org.bukkit.Server
 import org.bukkit.World
 
@@ -9,8 +10,18 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
 
     val tasks: HashSet<RunningTaskEntry> = HashSet()
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
+    val worldCenters: HashMap<String, Pair<Int, Int>> = HashMap()
     val allTasks: HashSet<TaskEntry>
         get() {
+            if (this.tasks.isEmpty() && this.pausedTasks.isEmpty()) {
+                if (this.worldCenters.isEmpty()) {
+                    this.loadWorldCenters()
+                }
+                this.startAll()
+                if (!server.onlinePlayers.isEmpty()) {
+                    this.pauseAll()
+                }
+            }
             val all = HashSet<TaskEntry>()
             all.addAll(pausedTasks)
             all.addAll(tasks)
@@ -25,7 +36,12 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     fun addTask(world: World, stopAfter: Int = -1): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
         if (foundTask == null) {
-            val centerChunk = ChunkCoordinates(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
+            val centerChunk = if (worldCenters[world.name] == null) {
+                ChunkCoordinates(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
+            } else {
+                val center = worldCenters[world.name]!!
+                ChunkCoordinates(center.first, center.second)
+            }
             val generationTask = createGenerationTask(world, centerChunk, centerChunk, stopAfter)
 
             chunkmaster.sqliteManager.executeStatement(
@@ -83,13 +99,14 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         center: ChunkCoordinates,
         last: ChunkCoordinates,
         id: Int,
-        stopAfter: Int = -1
+        stopAfter: Int = -1,
+        delay: Long = 200L
     ) {
         if (!paused) {
             chunkmaster.logger.info(chunkmaster.langManager.getLocalized("RESUME_FOR_WORLD", world.name))
             val generationTask = createGenerationTask(world, center, last, stopAfter)
             val task = server.scheduler.runTaskTimer(
-                chunkmaster, generationTask, 200,  // 10 sec delay
+                chunkmaster, generationTask, delay,  // 10 sec delay
                 chunkmaster.config.getLong("generation.period")
             )
             tasks.add(RunningTaskEntry(id, task, generationTask))
@@ -139,8 +156,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             saveProgress()      // save progress every 30 seconds
         }, 600, 600)
         server.scheduler.runTaskLater(chunkmaster, Runnable {
-            if (server.onlinePlayers.isEmpty()) {
-                startAll()     // run startAll after 10 seconds if empty
+            this.loadWorldCenters()
+            this.startAll()
+            if (!server.onlinePlayers.isEmpty()) {
+                this.pauseAll()
             }
         }, 600)
     }
@@ -149,11 +168,14 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Stops all generation tasks
      */
     fun stopAll() {
-        saveProgress()
         val removalSet = HashSet<RunningTaskEntry>()
         for (task in tasks) {
-            task.generationTask.cancel()
+            val lastChunk = task.generationTask.lastChunkCoords
+            val id = task.id
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("SAVING_TASK_PROGRESS", task.id))
+            saveProgressToDatabase(lastChunk, id)
             task.task.cancel()
+            task.generationTask.cancel()
             if (task.task.isCancelled) {
                 removalSet.add(task)
             }
@@ -167,7 +189,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun startAll() {
         chunkmaster.sqliteManager.executeStatement("SELECT * FROM generation_tasks", HashMap()) { res ->
+            var count = 0
             while (res.next()) {
+                count++
                 try {
                     val id = res.getInt("id")
                     val world = server.getWorld(res.getString("world"))
@@ -175,7 +199,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     val last = ChunkCoordinates(res.getInt("last_x"), res.getInt("last_z"))
                     val stopAfter = res.getInt("stop_after")
                     if (this.tasks.find { it.id == id } == null) {
-                        resumeTask(world!!, center, last, id, stopAfter)
+                        resumeTask(world!!, center, last, id, stopAfter, 200L + count)
                     }
                 } catch (error: NullPointerException) {
                     chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", res.getInt("id")))
@@ -209,6 +233,51 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     }
 
     /**
+     * Overload that doesn't need an argument
+     */
+    fun loadWorldCenters() {
+        loadWorldCenters(null)
+    }
+
+    /**
+     * Loads the world centers from the database
+     */
+    fun loadWorldCenters(cb: (() -> Unit)?) {
+        chunkmaster.sqliteManager.executeStatement("SELECT * FROM world_properties", HashMap()) {
+            while (it.next()) {
+                worldCenters[it.getString("name")] = Pair(it.getInt("center_x"), it.getInt("center_z"))
+            }
+            cb?.invoke()
+        }
+    }
+
+    /**
+     * Updates the center of a world
+     */
+    fun updateWorldCenter(worldName: String, center: Pair<Int, Int>) {
+        chunkmaster.sqliteManager.executeStatement("SELECT * FROM world_properties WHERE name = ?", HashMap(mapOf(1 to worldName))) {
+            if (it.next()) {
+                chunkmaster.sqliteManager.executeStatement("UPDATE world_properties SET center_x = ?, center_z = ? WHERE name = ?", HashMap(
+                    mapOf(
+                        1 to center.first,
+                        2 to center.second,
+                        3 to worldName
+                    )
+                ), null)
+            } else {
+                chunkmaster.sqliteManager.executeStatement("INSERT INTO world_properties (name, center_x, center_z) VALUES (?, ?, ?)", HashMap(
+                    mapOf(
+                        1 to worldName,
+                        2 to center.first,
+                        3 to center.second
+                    )
+                ), null)
+            }
+        }
+        worldCenters[worldName] = center
+    }
+
+    /**
      * Saves the task progress
      */
     private fun saveProgress() {
@@ -221,7 +290,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 )}%)" else ""
                 val eta = if (genTask.stopAfter > 0 && speed > 0) {
                     val etaSeconds = (genTask.stopAfter - genTask.count).toDouble()/speed
-                    chunkmaster.logger.info(""+etaSeconds)
                     val hours: Int = (etaSeconds/3600).toInt()
                     val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
                     val seconds: Int = (etaSeconds % 60).toInt()
@@ -239,18 +307,25 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     speed,
                     genTask.lastChunk.x,
                     genTask.lastChunk.z))
-                chunkmaster.sqliteManager.executeStatement(
-                    """
-                    UPDATE generation_tasks SET last_x = ?, last_z = ?
-                    WHERE id = ?
-                    """.trimIndent(),
-                    HashMap(mapOf(1 to genTask.lastChunk.x, 2 to genTask.lastChunk.z, 3 to task.id)),
-                    null
-                )
+                saveProgressToDatabase(genTask.lastChunkCoords, task.id)
             } catch (error: Exception) {
                 chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }
         }
+    }
+
+    /**
+     * Saves the generation progress to the database
+     */
+    private fun saveProgressToDatabase(lastChunk: ChunkCoordinates, id: Int) {
+        chunkmaster.sqliteManager.executeStatement(
+            """
+                    UPDATE generation_tasks SET last_x = ?, last_z = ?
+                    WHERE id = ?
+                    """.trimIndent(),
+            HashMap(mapOf(1 to lastChunk.x, 2 to lastChunk.z, 3 to id)),
+            null
+        )
     }
 
     /**

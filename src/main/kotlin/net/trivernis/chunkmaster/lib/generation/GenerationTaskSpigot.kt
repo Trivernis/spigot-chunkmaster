@@ -2,6 +2,7 @@ package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.World
+import java.lang.Exception
 
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster, override val world: World,
@@ -13,7 +14,10 @@ class GenerationTaskSpigot(
     override var count = 0
         private set
     override var endReached: Boolean = false
-        private set
+
+    init {
+        updateDynmapMarker()
+    }
 
     /**
      * Runs the generation task. Every Iteration the next chunk will be generated if
@@ -23,16 +27,10 @@ class GenerationTaskSpigot(
     override fun run() {
         if (plugin.mspt < msptThreshold) {    // pause when tps < 2
             if (loadedChunks.size > maxLoadedChunks) {
-                for (chunk in loadedChunks) {
-                    if (chunk.isLoaded) {
-                        chunk.unload(true)
-                    }
-                }
-                loadedChunks.clear()
+                unloadLoadedChunks()
             } else {
                 if (borderReached()) {
-                    endReached = true
-                    endReachedCallback?.invoke(this)
+                    setEndReached()
                     return
                 }
 
@@ -62,8 +60,13 @@ class GenerationTaskSpigot(
     override fun cancel() {
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {
-                chunk.unload(true)
+                try {
+                    chunk.unload(true)
+                } catch (e: Exception) {
+                    plugin.logger.severe(e.toString())
+                }
             }
         }
+        updateDynmapMarker(true)
     }
 }

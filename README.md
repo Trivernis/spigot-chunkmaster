@@ -6,7 +6,28 @@ and resumes when the server is empty again. The generation also auto-resumes aft
 restart. The plugin tracks the ticks per second and pauses the generation when the tps
 is lower than 2 (configurable).
 
-## Commands
+## Built with
+
+- [Gradle](https://gradle.org/) - Dependency Management and Build Tool
+- [Sqlite JDBC](https://bitbucket.org/xerial/sqlite-jdbc/) - Database Driver for JDBC
+- [bStats](https://bstats.org/) - Statistical Insights
+
+## Features
+
+- Pregeneration of a specific area around the world center
+- Configuration of world centers
+- Integration into dynmap
+- Teleportation to chunks
+- Auto-Pause/Resume on player join/leave
+- Highly configurable
+
+## Installing
+
+Just download the jar from the latest release and place it into the servers plugins folder.
+
+## Usage and Configuration
+
+### Commands
 
 All features can be accessed with the command `/chunkmaster` or the aliases `/chm`, `chunkm`, `cmaster`.
 
@@ -17,8 +38,31 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
+- `/<command> setCenter [<world>] <chunkX> <chunkZ>` - sets the center chunk of the world
+- `/<command> getCenter [<world>]` - returns the center chunk of the world
 
-## Config
+#### Examples
+**Generate a 100 chunks * 100 chunks square around the spawn:**
+
+`/chm generate [world] 100 diameter`
+
+**Generate a 100 blocks * 100 blocks square around the spawn:**
+
+`/chm generate [world] 50 blockradius`
+
+**Generate 100 Blocks in every direction from the spawn:**
+
+`/chm generate [world] 100 blockradius`
+
+**Generate 200 Chunks in every direction from the spawn:**
+
+`/chm generate [world] 200 radius`
+
+**Generate 1000 Chunks in total around the spawn:**
+
+`/chm generate [world] 1000`
+
+### Config
 
 ```yaml
 
@@ -30,6 +74,14 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 # For non-defined translations the default (english) version is used.
 # For built-in support please create a PullRequest with your translation.
 language: en
+
+# Actiates/deactivates the dynmap integration.
+# With the setting set to 'true' the plugin tries to trigger the rendering
+# of generated chunks right before unloading them. It also adds an area
+# marker to the dynmap to show the area that will be pregenerated.
+# The marker is removed automatically when the task is finished or canceled.
+# The value should be a boolean <true/false>
+dynmap: true
 
 generation:
 
@@ -83,8 +135,16 @@ generation:
   pause-on-join: true
 ```
 
-## Spigot and Paper
+### Spigot and Paper
 
 The plugin works on spigot and paper servers but is significantly faster on paper servers
 (because it profits from asynchronous chunk loading an the better implementation of the
 isChunkGenerated method).
+
+## License
+
+This project is licensed under the GPLv3.0 License - see the [License.md](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
+
+## bStats
+
+[![Plugin statistics](https://bstats.org/signatures/bukkit/chunkmaster.svg)](https://bstats.org/plugin/bukkit/Chunkmaster/5639)
