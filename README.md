@@ -12,6 +12,15 @@ is lower than 2 (configurable).
 - [Sqlite JDBC](https://bitbucket.org/xerial/sqlite-jdbc/) - Database Driver for JDBC
 - [bStats](https://bstats.org/) - Statistical Insights
 
+## Features
+
+- Pregeneration of a specific area around the world center
+- Configuration of world centers
+- Integration into dynmap
+- Teleportation to chunks
+- Auto-Pause/Resume on player join/leave
+- Highly configurable
+
 ## Installing
 
 Just download the jar from the latest release and place it into the servers plugins folder.
@@ -65,6 +74,14 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 # For non-defined translations the default (english) version is used.
 # For built-in support please create a PullRequest with your translation.
 language: en
+
+# Actiates/deactivates the dynmap integration.
+# With the setting set to 'true' the plugin tries to trigger the rendering
+# of generated chunks right before unloading them. It also adds an area
+# marker to the dynmap to show the area that will be pregenerated.
+# The marker is removed automatically when the task is finished or canceled.
+# The value should be a boolean <true/false>
+dynmap: true
 
 generation:
 

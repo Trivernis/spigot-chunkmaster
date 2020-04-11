@@ -27,6 +27,7 @@ class CmdReload(private val chunkmaster: Chunkmaster): Subcommand {
         chunkmaster.generationManager.stopAll()
         chunkmaster.reloadConfig()
         chunkmaster.generationManager.startAll()
+        chunkmaster.langManager.loadProperties()
         sender.sendMessage(chunkmaster.langManager.getLocalized("CONFIG_RELOADED"))
         return true
     }

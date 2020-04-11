@@ -14,7 +14,10 @@ class GenerationTaskSpigot(
     override var count = 0
         private set
     override var endReached: Boolean = false
-        private set
+
+    init {
+        updateDynmapMarker()
+    }
 
     /**
      * Runs the generation task. Every Iteration the next chunk will be generated if
@@ -24,16 +27,10 @@ class GenerationTaskSpigot(
     override fun run() {
         if (plugin.mspt < msptThreshold) {    // pause when tps < 2
             if (loadedChunks.size > maxLoadedChunks) {
-                for (chunk in loadedChunks) {
-                    if (chunk.isLoaded) {
-                        chunk.unload(true)
-                    }
-                }
-                loadedChunks.clear()
+                unloadLoadedChunks()
             } else {
                 if (borderReached()) {
-                    endReached = true
-                    endReachedCallback?.invoke(this)
+                    setEndReached()
                     return
                 }
 
@@ -70,5 +67,6 @@ class GenerationTaskSpigot(
                 }
             }
         }
+        updateDynmapMarker(true)
     }
 }

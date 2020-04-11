@@ -5,6 +5,9 @@ description: Chunk commands plugin.
 author: Trivernis
 website: trivernis.net
 api-version: '1.14'
+database: true
+softdepend:
+  - dynmap
 commands:
   chunkmaster:
     description: Main command
