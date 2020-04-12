@@ -308,6 +308,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     genTask.lastChunk.x,
                     genTask.lastChunk.z))
                 saveProgressToDatabase(genTask.lastChunkCoords, task.id)
+                genTask.updateLastChunkMarker()
             } catch (error: Exception) {
                 chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }

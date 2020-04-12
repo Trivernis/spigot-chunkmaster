@@ -2,8 +2,8 @@ package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Spiral
+import net.trivernis.chunkmaster.lib.dynmap.*
 import org.bukkit.Chunk
-import org.bukkit.Location
 import org.bukkit.World
 import kotlin.math.*
 
@@ -27,13 +27,22 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
     protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
-    protected val dynmapIntegration = plugin.config.getBoolean("dynmap")
-    protected val dynmap = plugin.dynmapApi
-    protected var endReachedCallback: ((GenerationTask) -> Unit)? = null
-        private set
 
-    private val markerId = "chunkmaster_genarea"
-    private val markerName = "Chunkmaster Generation Area"
+    private var endReachedCallback: ((GenerationTask) -> Unit)? = null
+
+    private val dynmapIntegration = plugin.config.getBoolean("dynmap")
+    private val dynmap = plugin.dynmapApi
+    private val markerSet: ExtendedMarkerSet? = if (dynmap != null) {
+        DynmapApiWrapper(dynmap).getCreateMarkerSet("chunkmaster", "Chunkmaster")
+    } else {
+        null
+    }
+    private val markerAreaStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0022FF), FillStyle(.0, 0))
+    private val markerAreaId = "chunkmaster_genarea"
+    private val markerAreaName = "Chunkmaster Generation Area"
+    private val markerLastStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0077FF), FillStyle(.0, 0))
+    private val markerLastId = "chunkmaster_lastchunk"
+    private val markerLastName = "Chunkmaster Last Chunk"
     private val ignoreWorldborder = plugin.config.getBoolean("generation.ignore-worldborder")
 
     abstract override fun run()
@@ -83,38 +92,42 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     /**
      * Updates the dynmap marker for the generation radius
      */
-    protected fun updateDynmapMarker(clear: Boolean = false) {
-        val markerSet = dynmap?.markerAPI?.getMarkerSet("markers")
-        var marker = markerSet?.findAreaMarker(markerId)
+    protected fun updateGenerationAreaMarker(clear: Boolean = false) {
         if (clear) {
-            marker?.deleteMarker()
+            markerSet?.deleteAreaMarker(markerAreaId)
         } else if (dynmapIntegration && stopAfter > 0) {
             val (topLeft, bottomRight) = this.getAreaCorners()
-            if (marker != null) {
-                marker.setCornerLocations(
-                    doubleArrayOf((topLeft.x * 16).toDouble(), (bottomRight.x * 16).toDouble()),
-                    doubleArrayOf((topLeft.z * 16).toDouble(), (bottomRight.z * 16).toDouble())
-                )
-            } else {
-                marker = markerSet?.createAreaMarker(
-                    markerId,
-                    markerName,
-                    false,
-                    world.name,
-                    doubleArrayOf((topLeft.x * 16).toDouble(), (bottomRight.x * 16).toDouble()),
-                    doubleArrayOf((topLeft.z * 16).toDouble(), (bottomRight.z * 16).toDouble()),
-                    true
-                )
-            }
-            marker?.setFillStyle(.0, 0)
-            marker?.setLineStyle(2, 1.0, 0x0000FF)
+            markerSet?.creUpdateAreMarker(
+                markerAreaId,
+                markerAreaName,
+                topLeft.getCenterLocation(world),
+                bottomRight.getCenterLocation(world),
+                markerAreaStyle
+            )
+        }
+    }
+
+    /**
+     * Updates the dynmap marker for the generation radius
+     */
+    fun updateLastChunkMarker(clear: Boolean = false) {
+        if (clear) {
+            markerSet?.deleteAreaMarker(markerLastId)
+        } else if (dynmapIntegration) {
+            markerSet?.creUpdateAreMarker(
+                markerLastId,
+                markerLastName,
+                this.lastChunk.getBlock(0, 0, 0).location,
+                this.lastChunk.getBlock(15, 0, 15).location,
+                markerLastStyle
+            )
         }
     }
 
     /**
      * Returns an approximation of cornders of the generation area
      */
-    protected fun getAreaCorners(): Pair<ChunkCoordinates, ChunkCoordinates> {
+    private fun getAreaCorners(): Pair<ChunkCoordinates, ChunkCoordinates> {
         val width = sqrt(stopAfter.toFloat())
         return Pair(
             ChunkCoordinates(centerChunk.x - floor(width/2).toInt(), centerChunk.z - floor(width/2).toInt()),
@@ -128,7 +141,8 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     protected fun setEndReached() {
         endReached = true
         endReachedCallback?.invoke(this)
-        updateDynmapMarker(true)
+        updateGenerationAreaMarker(true)
+        updateLastChunkMarker(true)
         if (dynmapIntegration) {
             val (topLeft, bottomRight) = this.getAreaCorners()
             dynmap?.triggerRenderOfVolume(topLeft.getCenterLocation(world), bottomRight.getCenterLocation(world))

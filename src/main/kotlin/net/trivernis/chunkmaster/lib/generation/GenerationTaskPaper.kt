@@ -20,7 +20,7 @@ class GenerationTaskPaper(
     override var endReached: Boolean = false
 
     init {
-        updateDynmapMarker()
+        updateGenerationAreaMarker()
     }
 
     /**
@@ -70,7 +70,8 @@ class GenerationTaskPaper(
      * This unloads all chunks that were generated but not unloaded yet.
      */
     override fun cancel() {
-        updateDynmapMarker(true)
+        updateGenerationAreaMarker(true)
+        updateLastChunkMarker(true)
         unloadAllChunks()
     }
 

@@ -16,7 +16,7 @@ class GenerationTaskSpigot(
     override var endReached: Boolean = false
 
     init {
-        updateDynmapMarker()
+        updateGenerationAreaMarker()
     }
 
     /**
@@ -67,6 +67,7 @@ class GenerationTaskSpigot(
                 }
             }
         }
-        updateDynmapMarker(true)
+        updateGenerationAreaMarker(true)
+        updateLastChunkMarker(true)
     }
 }
