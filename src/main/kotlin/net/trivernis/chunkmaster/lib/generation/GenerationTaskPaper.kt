@@ -48,13 +48,13 @@ class GenerationTaskPaper(
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                     for (i in 0 until chunksPerStep) {
-                        if (borderReachedCheck()) break
+                        if (borderReached()) break
                         if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                             pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                         }
                         chunk = nextChunkCoordinates
                     }
-                    if (!borderReachedCheck() && !world.isChunkGenerated(chunk.x, chunk.z)) {
+                    if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                         pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                     }
                 }

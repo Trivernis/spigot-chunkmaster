@@ -36,17 +36,16 @@ class GenerationTaskSpigot(
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                     for (i in 0 until minOf(chunksPerStep, radius - shape.currentRadius())) {
-                        if (borderReachedCheck()) break
+                        if (borderReached()) break
                         val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                         chunkInstance.load(true)
                         loadedChunks.add(chunkInstance)
                         chunk = nextChunkCoordinates
                     }
-                    if (!borderReachedCheck()) {
-                        val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
-                        chunkInstance.load(true)
-                        loadedChunks.add(chunkInstance)
-                    }
+                    val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
+                    chunkInstance.load(true)
+                    loadedChunks.add(chunkInstance)
+
                 }
                 lastChunkCoords = chunk
                 count = shape.count // set the count to the more accurate spiral count
