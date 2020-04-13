@@ -1,6 +1,7 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
+import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
 import java.util.concurrent.CompletableFuture
@@ -8,8 +9,9 @@ import java.util.concurrent.CompletableFuture
 class GenerationTaskPaper(
     private val plugin: Chunkmaster, override val world: World,
     centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
-    override val stopAfter: Int = -1
-) : GenerationTask(plugin, centerChunk, startChunk) {
+    override val stopAfter: Int = -1,
+    shape: Shape
+) : GenerationTask(plugin, centerChunk, startChunk, shape) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
 
@@ -59,7 +61,7 @@ class GenerationTaskPaper(
                     }
                 }
                 lastChunkCoords = chunk
-                count = spiral.count // set the count to the more accurate spiral count
+                count = shape.count // set the count to the more accurate spiral count
             }
         }
         checkChunksLoaded()

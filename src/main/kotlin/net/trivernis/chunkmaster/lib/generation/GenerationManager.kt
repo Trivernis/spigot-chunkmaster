@@ -2,6 +2,8 @@ package net.trivernis.chunkmaster.lib.generation
 
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
+import net.trivernis.chunkmaster.lib.shapes.Circle
+import net.trivernis.chunkmaster.lib.shapes.Spiral
 import org.bukkit.Chunk
 import org.bukkit.Server
 import org.bukkit.World
@@ -339,10 +341,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         start: ChunkCoordinates,
         stopAfter: Int
     ): GenerationTask {
+        val shape = Spiral(Pair(center.x, center.z), Pair(center.x, center.z))
         return if (PaperLib.isPaper()) {
-            GenerationTaskPaper(chunkmaster, world, center, start, stopAfter)
+            GenerationTaskPaper(chunkmaster, world, center, start, stopAfter, shape)
         } else {
-            GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter)
+            GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter, shape)
         }
     }
 }

@@ -1,14 +1,16 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
+import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
 import java.lang.Exception
 
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster, override val world: World,
     centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
-    override val stopAfter: Int = -1
-) : GenerationTask(plugin, centerChunk, startChunk) {
+    override val stopAfter: Int = -1,
+    shape: Shape
+) : GenerationTask(plugin, centerChunk, startChunk, shape) {
 
 
     override var count = 0
@@ -48,7 +50,7 @@ class GenerationTaskSpigot(
                     loadedChunks.add(chunkInstance)
                 }
                 lastChunkCoords = chunk
-                count = spiral.count // set the count to the more accurate spiral count
+                count = shape.count // set the count to the more accurate spiral count
             }
         }
     }

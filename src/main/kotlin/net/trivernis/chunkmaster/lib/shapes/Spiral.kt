@@ -1,16 +1,14 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.shapes
 
 import kotlin.math.abs
 
-class Spiral(private val center: Pair<Int, Int>, start: Pair<Int, Int>) {
-    private var currentPos = start
+class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start) {
     private var direction = 0
-    var count = 0
 
     /**
      * Returns the next value in the spiral
      */
-    fun next(): Pair<Int, Int> {
+    override fun next(): Pair<Int, Int> {
         if (count == 0 && currentPos != center) {
             // simulate the spiral to get the correct direction
             // TODO: Improve performance of this workaround (replace it with acutal stuff)

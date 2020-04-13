@@ -1,8 +1,9 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
-import net.trivernis.chunkmaster.lib.Spiral
+import net.trivernis.chunkmaster.lib.shapes.Spiral
 import net.trivernis.chunkmaster.lib.dynmap.*
+import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
 import kotlin.math.*
@@ -10,7 +11,7 @@ import kotlin.math.*
 /**
  * Interface for generation tasks.
  */
-abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates) :
+abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates, protected val shape: Shape) :
     Runnable {
 
     abstract val stopAfter: Int
@@ -18,8 +19,6 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     abstract val count: Int
     abstract var endReached: Boolean
 
-    protected val spiral: Spiral =
-        Spiral(Pair(centerChunk.x, centerChunk.z), Pair(startChunk.x, startChunk.z))
     protected val loadedChunks: HashSet<Chunk> = HashSet()
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set
@@ -40,7 +39,7 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     private val markerAreaStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0022FF), FillStyle(.0, 0))
     private val markerAreaId = "chunkmaster_genarea"
     private val markerAreaName = "Chunkmaster Generation Area"
-    private val markerLastStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0077FF), FillStyle(.0, 0))
+    private val markerLastStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0077FF), FillStyle(.5, 0x0077FF))
     private val markerLastId = "chunkmaster_lastchunk"
     private val markerLastName = "Chunkmaster Last Chunk"
     private val ignoreWorldborder = plugin.config.getBoolean("generation.ignore-worldborder")
@@ -50,7 +49,7 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
 
     val nextChunkCoordinates: ChunkCoordinates
         get() {
-            val nextChunkCoords = spiral.next()
+            val nextChunkCoords = shape.next()
             return ChunkCoordinates(nextChunkCoords.first, nextChunkCoords.second)
         }
 
