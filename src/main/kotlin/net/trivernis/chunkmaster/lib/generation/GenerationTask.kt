@@ -116,8 +116,8 @@ abstract class GenerationTask(
             markerSet?.creUpdateAreMarker(
                 markerLastId,
                 markerLastName,
-                this.lastChunk.getBlock(0, 0, 0).location,
-                this.lastChunk.getBlock(15, 0, 15).location,
+                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(0, 0, 0).location,
+                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(15, 0, 15).location,
                 markerLastStyle
             )
         }
