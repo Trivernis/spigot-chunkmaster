@@ -4,6 +4,7 @@ import org.bukkit.Location
 import org.dynmap.markers.AreaMarker
 import org.dynmap.markers.Marker
 import org.dynmap.markers.MarkerSet
+import org.dynmap.markers.PolyLineMarker
 
 class ExtendedMarkerSet(private val markerSet: MarkerSet) {
     /**
@@ -44,6 +45,25 @@ class ExtendedMarkerSet(private val markerSet: MarkerSet) {
         return marker
     }
 
+
+    fun creUpdatePolyLineMarker(id: String, label: String, edges: List<Location>, style: MarkerStyle?): PolyLineMarker? {
+        var marker = markerSet.findPolyLineMarker(id)
+        val xList = edges.map { it.x }
+        val yList = edges.map { it.y }
+        val zList = edges.map { it.z }
+        if (marker != null) {
+            marker.setCornerLocations(xList.toDoubleArray(), yList.toDoubleArray(), zList.toDoubleArray())
+        } else {
+            marker = markerSet.createPolyLineMarker(id, label, false, edges.first().world.name, xList.toDoubleArray(), yList.toDoubleArray(), zList.toDoubleArray(), true)
+        }
+        if (style != null) {
+            if (style.lineStyle != null) {
+                marker.setLineStyle(style.lineStyle.weight, style.lineStyle.opacity, style.lineStyle.color)
+            }
+        }
+        return marker
+    }
+
     /**
      * Returns the area marker for an id
      * @param id - the id of the marker
@@ -53,11 +73,23 @@ class ExtendedMarkerSet(private val markerSet: MarkerSet) {
     }
 
     /**
+     * Returns the polylinemarker for an id
+     */
+    fun findPolyLineMarker(id: String): PolyLineMarker? {
+        return markerSet.findPolyLineMarker(id)
+    }
+
+    /**
      * Deletes an area marker
      * @param id - the id of the marker
      */
     fun deleteAreaMarker(id: String) {
         val marker = this.findAreaMarker(id)
+        marker?.deleteMarker()
+    }
+
+    fun deletePolyLineMarker(id: String) {
+        val marker = this.findPolyLineMarker(id)
         marker?.deleteMarker()
     }
 }

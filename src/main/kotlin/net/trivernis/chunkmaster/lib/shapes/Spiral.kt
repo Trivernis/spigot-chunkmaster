@@ -1,18 +1,34 @@
 package net.trivernis.chunkmaster.lib.shapes
 
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start) {
+class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(center, start, radius) {
     private var direction = 0
+
+    override fun endReached(): Boolean {
+        val distances = getDistances(center, currentPos)
+        return radius > 0 && (distances.first > radius || distances.second > radius)
+    }
+
+    override fun progress(): Double {
+        return (currentRadius()*2).toDouble().pow(2) / (radius * 2).toDouble().pow(2)
+    }
+
+    override fun currentRadius(): Int {
+        val distances = getDistances(center, currentPos)
+        return distances.first.coerceAtLeast(distances.second)
+    }
 
     /**
      * Returns the next value in the spiral
      */
     override fun next(): Pair<Int, Int> {
         if (count == 0 && currentPos != center) {
-            // simulate the spiral to get the correct direction
-            // TODO: Improve performance of this workaround (replace it with acutal stuff)
-            val simSpiral = Spiral(center, center)
+            // simulate the spiral to get the correct direction and count
+            val simSpiral = Spiral(center, center, radius)
             while (simSpiral.next() != currentPos);
             direction = simSpiral.direction
             count = simSpiral.count
@@ -51,6 +67,14 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start
         }
         count ++
         return currentPos
+    }
+
+    override fun getShapeEdgeLocations(): List<Pair<Int, Int>> {
+        val a = Pair(this.radius + center.first, this.radius + center.second)
+        val b = Pair(this.radius + center.first, -this.radius + center.second)
+        val c = Pair(-this.radius + center.first, -this.radius + center.second)
+        val d = Pair(-this.radius + center.first, this.radius + center.second)
+        return listOf(a, b, c, d, a)
     }
 
     /**

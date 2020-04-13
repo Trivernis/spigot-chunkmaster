@@ -1,22 +1,24 @@
 package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
-import net.trivernis.chunkmaster.lib.shapes.Spiral
 import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
-import kotlin.math.*
 
 /**
  * Interface for generation tasks.
  */
-abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: ChunkCoordinates, startChunk: ChunkCoordinates, protected val shape: Shape) :
+abstract class GenerationTask(
+    plugin: Chunkmaster,
+    startChunk: ChunkCoordinates,
+    val shape: Shape
+) :
     Runnable {
 
-    abstract val stopAfter: Int
+    abstract val radius: Int
     abstract val world: World
-    abstract val count: Int
+    abstract var count: Int
     abstract var endReached: Boolean
 
     protected val loadedChunks: HashSet<Chunk> = HashSet()
@@ -69,7 +71,7 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
      */
     protected fun borderReached(): Boolean {
         return (!world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) && !ignoreWorldborder)
-                || (stopAfter in 1..count)
+                || shape.endReached()
     }
 
     /**
@@ -93,14 +95,12 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
      */
     protected fun updateGenerationAreaMarker(clear: Boolean = false) {
         if (clear) {
-            markerSet?.deleteAreaMarker(markerAreaId)
-        } else if (dynmapIntegration && stopAfter > 0) {
-            val (topLeft, bottomRight) = this.getAreaCorners()
-            markerSet?.creUpdateAreMarker(
+            markerSet?.deletePolyLineMarker(markerAreaId)
+        } else if (dynmapIntegration && radius > 0) {
+            markerSet?.creUpdatePolyLineMarker(
                 markerAreaId,
                 markerAreaName,
-                topLeft.getCenterLocation(world),
-                bottomRight.getCenterLocation(world),
+                this.shape.getShapeEdgeLocations().map { ChunkCoordinates(it.first, it.second).getCenterLocation(this.world) },
                 markerAreaStyle
             )
         }
@@ -124,28 +124,25 @@ abstract class GenerationTask(plugin: Chunkmaster, private val centerChunk: Chun
     }
 
     /**
-     * Returns an approximation of cornders of the generation area
-     */
-    private fun getAreaCorners(): Pair<ChunkCoordinates, ChunkCoordinates> {
-        val width = sqrt(stopAfter.toFloat())
-        return Pair(
-            ChunkCoordinates(centerChunk.x - floor(width/2).toInt(), centerChunk.z - floor(width/2).toInt()),
-            ChunkCoordinates(centerChunk.x + ceil(width/2).toInt(), centerChunk.z + ceil(width/2).toInt())
-        )
-    }
-
-    /**
      * Handles the invocation of the end reached callback and additional logic
      */
     protected fun setEndReached() {
         endReached = true
+        count = shape.count
         endReachedCallback?.invoke(this)
         updateGenerationAreaMarker(true)
         updateLastChunkMarker(true)
-        if (dynmapIntegration) {
-            val (topLeft, bottomRight) = this.getAreaCorners()
-            dynmap?.triggerRenderOfVolume(topLeft.getCenterLocation(world), bottomRight.getCenterLocation(world))
+    }
+
+    /**
+     * Performs a check if the border has been reached
+     */
+    protected fun borderReachedCheck(): Boolean {
+        val done = borderReached()
+        if (done) {
+            setEndReached()
         }
+        return done
     }
 
     /**

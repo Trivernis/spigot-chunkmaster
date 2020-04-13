@@ -1,18 +1,42 @@
 package net.trivernis.chunkmaster.lib.shapes
 
+import net.trivernis.chunkmaster.lib.dynmap.ExtendedMarkerSet
+import net.trivernis.chunkmaster.lib.dynmap.MarkerStyle
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
+import kotlin.math.PI
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.system.exitProcess
 
-class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start) {
-    var r = 0
-        private set
+class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(center, start, radius) {
+    private var r = 0
     private var coords = Stack<Pair<Int, Int>>()
+    private var previousCoords = HashSet<Pair<Int, Int>>()
+
+    override fun endReached(): Boolean {
+        if ((radius + 1) in 1..r) return true
+        return radius > 0 && coords.isEmpty() && r >= radius
+    }
+
+    override fun progress(): Double {
+        return (PI * r.toFloat().pow(2))/(PI* radius.toFloat().pow(2))
+    }
+
+    override fun currentRadius(): Int {
+        return r
+    }
+
+    override fun getShapeEdgeLocations(): List<Pair<Int, Int>> {
+        val locations = this.getCircleCoordinates(this.radius)
+        locations.add(locations.first())
+        return locations.map{ Pair(it.first + center.first, it.second + center.second) }
+    }
 
     override fun next(): Pair<Int, Int> {
         if (count == 0 && currentPos != center) {
-            val tmpCircle = Circle(center, center)
+            val tmpCircle = Circle(center, center, radius)
             while (tmpCircle.next() != currentPos);
             this.count = tmpCircle.count
             this.r = tmpCircle.r
@@ -26,7 +50,10 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start
             val tmpCoords = HashSet<Pair<Int, Int>>()
             tmpCoords.addAll(getCircleCoordinates((r*2)-1).map { Pair(it.first / 2, it.second / 2) })
             tmpCoords.addAll(getCircleCoordinates(r))
+            tmpCoords.removeAll(previousCoords)
+            previousCoords.clear()
             coords.addAll(tmpCoords)
+            previousCoords.addAll(tmpCoords)
         }
         count++
         val coord = coords.pop()
@@ -36,31 +63,38 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>): Shape(center, start
 
     /**
      * Returns the int coordinates for a circle
+     * Some coordinates might already be present in the list
      * @param r - the radius
      */
-    private fun getCircleCoordinates(r: Int): HashSet<Pair<Int, Int>> {
+    private fun getCircleCoordinates(r: Int): ArrayList<Pair<Int, Int>> {
         val coords = ArrayList<Pair<Int, Int>>()
         val segCoords = getSegment(r)
-        coords.addAll(segCoords)
-        for (step in 0..7) {
+        coords.addAll(segCoords.reversed())
+        for (step in 1..7) {
+            val tmpSeg = ArrayList<Pair<Int, Int>>()
             for (pos in segCoords) {
-                coords.add(when (step) {
-                    0 -> pos
-                    1 -> Pair(pos.second, pos.first)
-                    2 -> Pair(pos.first, -pos.second)
-                    3 -> Pair(-pos.second, pos.first)
+                val coord = when (step) {
+                    1 -> Pair(pos.first, -pos.second)
+                    2 ->Pair(pos.second, -pos.first)
+                    3 -> Pair(-pos.second, -pos.first)
                     4 -> Pair(-pos.first, -pos.second)
-                    5 -> Pair(-pos.second, -pos.first)
-                    6 -> Pair(-pos.first, pos.second)
-                    7 -> Pair(pos.second, -pos.first)
+                    5 -> Pair(-pos.first, pos.second)
+                    6 -> Pair(-pos.second, pos.first)
+                    7 -> Pair(pos.second, pos.first)
                     else -> pos
-                })
+                }
+                if (coord !in coords) {
+                    tmpSeg.add(coord)
+                }
+            }
+            if (step % 2 == 0) {
+                coords.addAll(tmpSeg.reversed())
+            } else {
+                coords.addAll(tmpSeg)
             }
         }
 
-        val set = HashSet<Pair<Int, Int>>()
-        set.addAll(coords)
-        return set
+        return coords
     }
 
     /**

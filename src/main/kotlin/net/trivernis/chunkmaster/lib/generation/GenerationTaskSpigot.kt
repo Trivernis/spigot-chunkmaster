@@ -8,13 +8,12 @@ import java.lang.Exception
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster, override val world: World,
     centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
-    override val stopAfter: Int = -1,
+    override val radius: Int = -1,
     shape: Shape
-) : GenerationTask(plugin, centerChunk, startChunk, shape) {
+) : GenerationTask(plugin, startChunk, shape) {
 
 
     override var count = 0
-        private set
     override var endReached: Boolean = false
 
     init {
@@ -31,23 +30,23 @@ class GenerationTaskSpigot(
             if (loadedChunks.size > maxLoadedChunks) {
                 unloadLoadedChunks()
             } else {
-                if (borderReached()) {
-                    setEndReached()
-                    return
-                }
+                if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until minOf(chunksPerStep, stopAfter - count)) {
+                    for (i in 0 until minOf(chunksPerStep, radius - shape.currentRadius())) {
+                        if (borderReachedCheck()) break
                         val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                         chunkInstance.load(true)
                         loadedChunks.add(chunkInstance)
                         chunk = nextChunkCoordinates
                     }
-                    val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
-                    chunkInstance.load(true)
-                    loadedChunks.add(chunkInstance)
+                    if (!borderReachedCheck()) {
+                        val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
+                        chunkInstance.load(true)
+                        loadedChunks.add(chunkInstance)
+                    }
                 }
                 lastChunkCoords = chunk
                 count = shape.count // set the count to the more accurate spiral count

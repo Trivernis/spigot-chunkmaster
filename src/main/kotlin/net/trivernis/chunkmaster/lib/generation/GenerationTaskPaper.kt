@@ -7,18 +7,18 @@ import org.bukkit.World
 import java.util.concurrent.CompletableFuture
 
 class GenerationTaskPaper(
-    private val plugin: Chunkmaster, override val world: World,
-    centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
-    override val stopAfter: Int = -1,
+    private val plugin: Chunkmaster,
+    override val world: World,
+    startChunk: ChunkCoordinates,
+    override val radius: Int = -1,
     shape: Shape
-) : GenerationTask(plugin, centerChunk, startChunk, shape) {
+) : GenerationTask(plugin, startChunk, shape) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
 
     private val pendingChunks = HashSet<CompletableFuture<Chunk>>()
 
     override var count = 0
-        private set
     override var endReached: Boolean = false
 
     init {
@@ -35,10 +35,7 @@ class GenerationTaskPaper(
             if (loadedChunks.size > maxLoadedChunks) {
                 unloadLoadedChunks()
             } else if (pendingChunks.size < maxPendingChunks) {   // if more than 10 chunks are pending, wait.
-                if (borderReached()) {
-                    setEndReached()
-                    return
-                }
+                if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
                 for (i in 1 until chunkSkips) {
@@ -50,13 +47,14 @@ class GenerationTaskPaper(
                 }
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until minOf(chunksPerStep, (stopAfter - count) - 1)) {
+                    for (i in 0 until chunksPerStep) {
+                        if (borderReachedCheck()) break
                         if (!world.isChunkGenerated(chunk.x, chunk.z)) {
                             pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                         }
                         chunk = nextChunkCoordinates
                     }
-                    if (!world.isChunkGenerated(chunk.x, chunk.z)) {
+                    if (!borderReachedCheck() && !world.isChunkGenerated(chunk.x, chunk.z)) {
                         pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
                     }
                 }
