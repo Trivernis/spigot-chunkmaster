@@ -351,7 +351,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         return if (PaperLib.isPaper()) {
             GenerationTaskPaper(chunkmaster, world, start, radius, shape)
         } else {
-            GenerationTaskSpigot(chunkmaster, world, center, start, radius, shape)
+            GenerationTaskSpigot(chunkmaster, world, start, radius, shape)
         }
     }
 }

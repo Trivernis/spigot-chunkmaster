@@ -26,19 +26,19 @@ class GenerationTaskPaper(
     }
 
     /**
-     * Runs the generation task. Every Iteration the next chunk will be generated if
-     * it hasn't been generated already.
-     * After 10 chunks have been generated, they will all be unloaded and saved.
+     * Runs the generation task. Every Iteration the next chunks will be generated if
+     * they haven't been generated already
+     * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
     override fun run() {
-        if (plugin.mspt < msptThreshold) {    // pause when tps < 2
+        if (plugin.mspt < msptThreshold) {
             if (loadedChunks.size > maxLoadedChunks) {
                 unloadLoadedChunks()
-            } else if (pendingChunks.size < maxPendingChunks) {   // if more than 10 chunks are pending, wait.
+            } else if (pendingChunks.size < maxPendingChunks) {
                 if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
-                for (i in 1 until chunkSkips) {
+                for (i in 0 until chunkSkips) {
                     if (world.isChunkGenerated(chunk.x, chunk.z)) {
                         chunk = nextChunkCoordinates
                     } else {

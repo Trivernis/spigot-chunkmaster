@@ -55,17 +55,6 @@ abstract class GenerationTask(
             return ChunkCoordinates(nextChunkCoords.first, nextChunkCoords.second)
         }
 
-    val lastChunk: Chunk
-        get() {
-            return world.getChunkAt(lastChunkCoords.x, lastChunkCoords.z)
-        }
-
-    val nextChunk: Chunk
-        get() {
-            val next = nextChunkCoordinates
-            return world.getChunkAt(next.x, next.z)
-        }
-
     /**
      * Checks if the World border or the maximum chunk setting for the task is reached.
      */
@@ -126,7 +115,7 @@ abstract class GenerationTask(
     /**
      * Handles the invocation of the end reached callback and additional logic
      */
-    protected fun setEndReached() {
+    private fun setEndReached() {
         endReached = true
         count = shape.count
         endReachedCallback?.invoke(this)
@@ -140,6 +129,7 @@ abstract class GenerationTask(
     protected fun borderReachedCheck(): Boolean {
         val done = borderReached()
         if (done) {
+            unloadLoadedChunks()
             setEndReached()
         }
         return done

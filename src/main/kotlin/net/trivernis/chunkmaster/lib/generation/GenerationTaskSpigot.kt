@@ -6,8 +6,9 @@ import org.bukkit.World
 import java.lang.Exception
 
 class GenerationTaskSpigot(
-    private val plugin: Chunkmaster, override val world: World,
-    centerChunk: ChunkCoordinates, private val startChunk: ChunkCoordinates,
+    private val plugin: Chunkmaster,
+    override val world: World,
+    startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape
 ) : GenerationTask(plugin, startChunk, shape) {
@@ -21,21 +22,28 @@ class GenerationTaskSpigot(
     }
 
     /**
-     * Runs the generation task. Every Iteration the next chunk will be generated if
-     * it hasn't been generated already.
-     * After 10 chunks have been generated, they will all be unloaded and saved.
+     * Runs the generation task. Every Iteration the next chunks will be generated if
+     * they haven't been generated already
+     * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
     override fun run() {
-        if (plugin.mspt < msptThreshold) {    // pause when tps < 2
+        if (plugin.mspt < msptThreshold) {
             if (loadedChunks.size > maxLoadedChunks) {
                 unloadLoadedChunks()
             } else {
                 if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
+                for (i in 0 until chunkSkips) {
+                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
+                        chunk = nextChunkCoordinates
+                    } else {
+                        break
+                    }
+                }
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until minOf(chunksPerStep, radius - shape.currentRadius())) {
+                    for (i in 0 until chunksPerStep) {
                         if (borderReached()) break
                         val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                         chunkInstance.load(true)
@@ -45,10 +53,9 @@ class GenerationTaskSpigot(
                     val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                     chunkInstance.load(true)
                     loadedChunks.add(chunkInstance)
-
                 }
                 lastChunkCoords = chunk
-                count = shape.count // set the count to the more accurate spiral count
+                count = shape.count
             }
         }
     }
