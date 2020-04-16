@@ -34,26 +34,17 @@ class GenerationTaskSpigot(
                 if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
-                for (i in 0 until chunkSkips) {
-                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
-                        chunk = nextChunkCoordinates
-                    } else {
-                        break
-                    }
-                }
-
-                if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until chunksPerStep) {
-                        if (borderReached()) break
-                        val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
-                        chunkInstance.load(true)
-                        loadedChunks.add(chunkInstance)
-                        chunk = nextChunkCoordinates
-                    }
+                for (i in 0 until chunksPerStep) {
+                    if (borderReached()) break
                     val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                     chunkInstance.load(true)
                     loadedChunks.add(chunkInstance)
+                    chunk = nextChunkCoordinates
                 }
+                val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
+                chunkInstance.load(true)
+                loadedChunks.add(chunkInstance)
+
                 lastChunkCoords = chunk
                 count = shape.count
             }

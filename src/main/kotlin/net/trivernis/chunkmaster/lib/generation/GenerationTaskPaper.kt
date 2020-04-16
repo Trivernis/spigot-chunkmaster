@@ -59,7 +59,7 @@ class GenerationTaskPaper(
                     }
                 }
                 lastChunkCoords = chunk
-                count = shape.count // set the count to the more accurate spiral count
+                count = shape.count
             }
         }
         checkChunksLoaded()

@@ -35,6 +35,9 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
     }
 
     override fun next(): Pair<Int, Int> {
+        if (endReached()) {
+            return currentPos
+        }
         if (count == 0 && currentPos != center) {
             val tmpCircle = Circle(center, center, radius)
             while (tmpCircle.next() != currentPos);
