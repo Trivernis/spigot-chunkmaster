@@ -1,4 +1,4 @@
-image: abstruse
+image: openjdk
 
 matrix:
   - env: SCRIPT=shadowJar
@@ -7,7 +7,6 @@ before_install:
   - apt update
 
 install:
-  - apt install -y openjdk-8-jdk
   - apt install -y gradle
 
 script:
