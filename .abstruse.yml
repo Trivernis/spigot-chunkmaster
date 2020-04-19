@@ -3,6 +3,9 @@ image: openjdk
 matrix:
   - env: SCRIPT=shadowJar
 
+before_install:
+  - mkdir .gradle
+
 script:
   - if [[ "SCRIPT" ]]; then gradle $SCRIPT; fi
 
