@@ -1,0 +1,7 @@
+image: openjdk
+
+matrix:
+  - env: SCRIPT=shadowJar
+
+script:
+  - if [[ "SCRIPT" ]]; then gradle $SCRIPT; fi
