@@ -3,5 +3,11 @@ image: openjdk
 matrix:
   - env: SCRIPT=shadowJar
 
+install:
+  - gradle dependencies
+
 script:
   - if [[ "SCRIPT" ]]; then gradle $SCRIPT; fi
+
+cache:
+  - .gradle
