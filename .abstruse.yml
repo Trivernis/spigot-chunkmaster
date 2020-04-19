@@ -6,6 +6,9 @@ matrix:
 before_install:
   - mkdir .gradle
 
+install:
+  - gradle dependencies
+
 script:
   - if [[ "SCRIPT" ]]; then gradle $SCRIPT; fi
 
