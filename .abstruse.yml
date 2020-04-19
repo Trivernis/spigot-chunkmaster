@@ -3,9 +3,6 @@ image: openjdk
 matrix:
   - env: SCRIPT=shadowJar
 
-before_install:
-  - mkdir .gradle
-
 install:
   - gradle dependencies
 
