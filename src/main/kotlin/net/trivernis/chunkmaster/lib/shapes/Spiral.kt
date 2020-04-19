@@ -69,6 +69,9 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         return currentPos
     }
 
+    /**
+     * Returns the edges to be used with dynmap markers
+     */
     override fun getShapeEdgeLocations(): List<Pair<Int, Int>> {
         val a = Pair(this.radius + center.first, this.radius + center.second)
         val b = Pair(this.radius + center.first, -this.radius + center.second)

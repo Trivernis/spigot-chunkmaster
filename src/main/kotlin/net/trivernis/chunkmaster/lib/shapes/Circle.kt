@@ -28,12 +28,19 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         return r
     }
 
+    /**
+     * Returns the edge locations of the shape to be used
+     * with dynmap markers
+     */
     override fun getShapeEdgeLocations(): List<Pair<Int, Int>> {
         val locations = this.getCircleCoordinates(this.radius)
         locations.add(locations.first())
         return locations.map{ Pair(it.first + center.first, it.second + center.second) }
     }
 
+    /**
+     * Returns the next coordinate of the circle until the end is reached
+     */
     override fun next(): Pair<Int, Int> {
         if (endReached()) {
             return currentPos
