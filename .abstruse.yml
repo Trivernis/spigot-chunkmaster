@@ -5,3 +5,6 @@ matrix:
 
 script:
   - if [[ "SCRIPT" ]]; then gradle $SCRIPT; fi
+
+cache:
+  - .gradle
