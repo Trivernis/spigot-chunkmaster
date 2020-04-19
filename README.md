@@ -1,4 +1,4 @@
-# chunkmaster
+# chunkmaster ![](https://abstruse.trivernis.net/badge/1)
 
 This plugin can be used to pre-generate the region of a world around the spawn chunk(s).
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
