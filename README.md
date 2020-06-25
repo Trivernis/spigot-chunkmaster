@@ -31,7 +31,7 @@ Just download the jar from the latest release and place it into the servers plug
 
 All features can be accessed with the command `/chunkmaster` or the aliases `/chm`, `chunkm`, `cmaster`.
 
-- `/chunkmaster generate [world] [chunk count] [unit]` Starts the generation until the specified chunk count or the world border is reached.
+- `/chunkmaster generate [world] [radius] [<square|circle>]` Starts the generation until the specified chunk count or the world border is reached.
 - `/chunkmaster list` Lists all running generation tasks
 - `/chunkmaster cancel <Task id>` Cancels the generation task with the specified id (if it is running).
 - `/chunkmaster pause` Pauses all generation tasks until the resume command is executed.
@@ -42,25 +42,13 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/<command> getCenter [<world>]` - returns the center chunk of the world
 
 #### Examples
-**Generate a 100 chunks * 100 chunks square around the spawn:**
+**Generate a 100 chunks * 100 blocks square around the center:**
 
-`/chm generate [world] 100 diameter`
+`/chm generate [world] 50`
 
-**Generate a 100 blocks * 100 blocks square around the spawn:**
+**Generate a circle with a radius of 100 blocks around the center:**
 
-`/chm generate [world] 50 blockradius`
-
-**Generate 100 Blocks in every direction from the spawn:**
-
-`/chm generate [world] 100 blockradius`
-
-**Generate 200 Chunks in every direction from the spawn:**
-
-`/chm generate [world] 200 radius`
-
-**Generate 1000 Chunks in total around the spawn:**
-
-`/chm generate [world] 1000`
+`/chm generate [world] 100 circle`
 
 ### Config
 
