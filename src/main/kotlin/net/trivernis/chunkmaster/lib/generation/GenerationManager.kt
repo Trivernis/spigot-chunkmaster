@@ -2,7 +2,8 @@ package net.trivernis.chunkmaster.lib.generation
 
 import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
-import org.bukkit.Chunk
+import net.trivernis.chunkmaster.lib.shapes.Circle
+import net.trivernis.chunkmaster.lib.shapes.Spiral
 import org.bukkit.Server
 import org.bukkit.World
 
@@ -33,7 +34,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     /**
      * Adds a generation task
      */
-    fun addTask(world: World, stopAfter: Int = -1): Int {
+    fun addTask(world: World, radius: Int = -1, shape: String = "square"): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
         if (foundTask == null) {
             val centerChunk = if (worldCenters[world.name] == null) {
@@ -42,12 +43,12 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 val center = worldCenters[world.name]!!
                 ChunkCoordinates(center.first, center.second)
             }
-            val generationTask = createGenerationTask(world, centerChunk, centerChunk, stopAfter)
+            val generationTask = createGenerationTask(world, centerChunk, centerChunk, radius, shape)
 
             chunkmaster.sqliteManager.executeStatement(
                 """
-                INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, stop_after)
-                values (?, ?, ?, ?, ?, ?)
+                INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, radius, shape)
+                values (?, ?, ?, ?, ?, ?, ?)
                 """,
                 HashMap(
                     mapOf(
@@ -56,7 +57,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                         3 to centerChunk.x,
                         4 to centerChunk.z,
                         5 to world.name,
-                        6 to stopAfter
+                        6 to radius,
+                        7 to shape
                     )
                 ),
                 null
@@ -99,14 +101,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         center: ChunkCoordinates,
         last: ChunkCoordinates,
         id: Int,
-        stopAfter: Int = -1,
-        delay: Long = 200L
+        radius: Int = -1,
+        delay: Long = 200L,
+        shape: String = "square"
     ) {
         if (!paused) {
             chunkmaster.logger.info(chunkmaster.langManager.getLocalized("RESUME_FOR_WORLD", world.name))
-            val generationTask = createGenerationTask(world, center, last, stopAfter)
+            val generationTask = createGenerationTask(world, center, last, radius, shape)
             val task = server.scheduler.runTaskTimer(
-                chunkmaster, generationTask, delay,  // 10 sec delay
+                chunkmaster, generationTask, delay,
                 chunkmaster.config.getLong("generation.period")
             )
             tasks.add(RunningTaskEntry(id, task, generationTask))
@@ -161,7 +164,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             if (!server.onlinePlayers.isEmpty()) {
                 this.pauseAll()
             }
-        }, 600)
+        }, 20)
     }
 
     /**
@@ -197,9 +200,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     val world = server.getWorld(res.getString("world"))
                     val center = ChunkCoordinates(res.getInt("center_x"), res.getInt("center_z"))
                     val last = ChunkCoordinates(res.getInt("last_x"), res.getInt("last_z"))
-                    val stopAfter = res.getInt("stop_after")
+                    val radius = res.getInt("radius")
+                    val shape = res.getString("shape")
                     if (this.tasks.find { it.id == id } == null) {
-                        resumeTask(world!!, center, last, id, stopAfter, 200L + count)
+                        resumeTask(world!!, center, last, id, radius, 200L + count, shape)
                     }
                 } catch (error: NullPointerException) {
                     chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", res.getInt("id")))
@@ -284,12 +288,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             try {
                 val genTask = task.generationTask
-                val speed = task.generationSpeed!!
-                val percentage = if (genTask.stopAfter > 0) "(${"%.2f".format(
-                    (genTask.count.toDouble() / genTask.stopAfter.toDouble()) * 100
-                )}%)" else ""
-                val eta = if (genTask.stopAfter > 0 && speed > 0) {
-                    val etaSeconds = (genTask.stopAfter - genTask.count).toDouble()/speed
+                val (speed, chunkSpeed) = task.generationSpeed
+                val percentage = if (genTask.radius > 0) "(${"%.2f".format(genTask.shape.progress() * 100)}%)" else ""
+                val eta = if (genTask.radius > 0 && speed!! > 0) {
+                    val etaSeconds = (genTask.shape.progress())/speed
                     val hours: Int = (etaSeconds/3600).toInt()
                     val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
                     val seconds: Int = (etaSeconds % 60).toInt()
@@ -304,10 +306,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     genTask.count,
                     percentage,
                     eta,
-                    speed,
-                    genTask.lastChunk.x,
-                    genTask.lastChunk.z))
+                    chunkSpeed!!,
+                    genTask.lastChunkCoords.x,
+                    genTask.lastChunkCoords.z))
                 saveProgressToDatabase(genTask.lastChunkCoords, task.id)
+                genTask.updateLastChunkMarker()
             } catch (error: Exception) {
                 chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }
@@ -336,12 +339,19 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         world: World,
         center: ChunkCoordinates,
         start: ChunkCoordinates,
-        stopAfter: Int
+        radius: Int,
+        shapeName: String
     ): GenerationTask {
+        val shape = when (shapeName) {
+            "circle" -> Circle(Pair(center.x, center.z), Pair(center.x, center.z), radius)
+            "square" -> Spiral(Pair(center.x, center.z), Pair(center.x, center.z), radius)
+            else -> Spiral(Pair(center.x, center.z), Pair(center.x, center.z), radius)
+        }
+
         return if (PaperLib.isPaper()) {
-            GenerationTaskPaper(chunkmaster, world, center, start, stopAfter)
+            GenerationTaskPaper(chunkmaster, world, start, radius, shape)
         } else {
-            GenerationTaskSpigot(chunkmaster, world, center, start, stopAfter)
+            GenerationTaskSpigot(chunkmaster, world, start, radius, shape)
         }
     }
 }

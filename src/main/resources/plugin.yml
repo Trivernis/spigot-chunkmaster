@@ -1,6 +1,6 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '0.15-beta'
+version: '0.16-beta'
 description: Chunk commands plugin.
 author: Trivernis
 website: trivernis.net
@@ -13,7 +13,7 @@ commands:
     description: Main command
     permission: chunkmaster.chunkmaster
     usage: |
-      /<command> generate [<world>, <chunk-count>] - generates chunks starting from the spawn until the chunk-count is reached
+      /<command> generate [<world>] <radius> [<shape>] - generates chunks starting from the spawn until the chunk-count is reached
       /<command> cancel <task-id> - cancels the generation task with the task-id
       /<command> list - lists all running and paused generation tasks
       /<command> pause - pauses all generation tasks

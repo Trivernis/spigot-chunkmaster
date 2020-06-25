@@ -1,7 +1,5 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import net.trivernis.chunkmaster.lib.generation.TaskEntry
@@ -50,8 +48,8 @@ class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
      */
     private fun getGenerationEntry(task: TaskEntry): String {
         val genTask = task.generationTask
-        val percentage = if (genTask.stopAfter > 0)
-            " (%.1f".format((genTask.count.toDouble()/genTask.stopAfter.toDouble())*100) + "%)."
+        val percentage = if (genTask.radius > 0)
+            " (%.1f".format(genTask.shape.progress()*100) + "%)."
         else
             ""
         return "\n" + chunkmaster.langManager.getLocalized("TASKS_ENTRY",

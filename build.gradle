@@ -22,7 +22,7 @@ idea {
 }
 
 group "net.trivernis"
-version "0.15-beta"
+version "0.16-beta"
 
 sourceCompatibility = 1.8
 
@@ -55,7 +55,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compileOnly "com.destroystokyo.paper:paper-api:1.14.4-R0.1-SNAPSHOT"
     compileOnly "org.dynmap:dynmap-api:2.0"
-    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+    compileOnly group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
     compile "io.papermc:paperlib:1.0.2"
     compile "org.bstats:bstats-bukkit:1.5"
 }
