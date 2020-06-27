@@ -1,6 +1,6 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '0.16-beta'
+version: '1.0'
 description: Chunk commands plugin.
 author: Trivernis
 website: trivernis.net
@@ -14,13 +14,13 @@ commands:
     permission: chunkmaster.chunkmaster
     usage: |
       /<command> generate [<world>] <radius> [<shape>] - generates chunks starting from the spawn until the chunk-count is reached
-      /<command> cancel <task-id> - cancels the generation task with the task-id
+      /<command> cancel <task-id|world> - cancels the generation task with the task-id
       /<command> list - lists all running and paused generation tasks
       /<command> pause - pauses all generation tasks
       /<command> resume - resumes all generation tasks
       /<command> reload - reloads the configuration and restarts all tasks
       /<command> tpchunk <chunkX> <chunkZ> - teleports you to the chunk with the given chunk coordinates
-      /<command> setCenter [<world>] <chunkX> <chunkZ> - sets the center chunk of the world
+      /<command> setCenter [[<world>] <chunkX> <chunkZ>]] - sets the center chunk of the world
       /<command> getCenter [<world>] - returns the center chunk of the world
     aliases:
       - chm

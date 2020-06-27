@@ -5,12 +5,13 @@ import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
+import java.lang.Exception
 
 /**
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
-    plugin: Chunkmaster,
+    private val plugin: Chunkmaster,
     startChunk: ChunkCoordinates,
     val shape: Shape
 ) :
@@ -69,7 +70,11 @@ abstract class GenerationTask(
     protected fun unloadLoadedChunks() {
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {
-                chunk.unload(true)
+                try {
+                    chunk.unload(true)
+                } catch (e: Exception) {
+                    plugin.logger.severe(e.toString())
+                }
             }
             if (dynmapIntegration) {
                 dynmap?.triggerRenderOfVolume(chunk.getBlock(0, 0, 0).location, chunk.getBlock(15, 255, 15).location)
