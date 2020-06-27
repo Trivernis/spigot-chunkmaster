@@ -38,7 +38,7 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
-- `/<command> setCenter [<world>] <chunkX> <chunkZ>` - sets the center chunk of the world
+- `/<command> setCenter [[<world>] <chunkX> <chunkZ>]]` - sets the center chunk of the world
 - `/<command> getCenter [<world>]` - returns the center chunk of the world
 
 #### Examples
