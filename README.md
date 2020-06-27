@@ -33,7 +33,7 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 
 - `/chunkmaster generate [world] [radius] [<square|circle>]` Starts the generation until the specified chunk count or the world border is reached.
 - `/chunkmaster list` Lists all running generation tasks
-- `/chunkmaster cancel <Task id>` Cancels the generation task with the specified id (if it is running).
+- `/chunkmaster cancel <Task id|world name>` Cancels the generation task with the specified id (if it is running).
 - `/chunkmaster pause` Pauses all generation tasks until the resume command is executed.
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
