@@ -130,7 +130,7 @@ isChunkGenerated method).
 
 ## License
 
-This project is licensed under the GPLv3.0 License - see the [License.md](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
+This project is licensed under the GPLv3.0 License - see the [LICENSE](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
 
 ## bStats
 
