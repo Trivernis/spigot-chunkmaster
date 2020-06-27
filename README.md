@@ -114,13 +114,12 @@ generation:
   # The value should be a positive integer greater than 50.  
   mspt-pause-threshold: 500
 
-  # If the chunk generation process should pause on player join.
+  # Pauses the generation if the number of players on the server is larger or equal
+  # to the configured value
   # Notice that playing on a server that constantly generates chunks can be
   # very laggy and can cause it to crash.
-  # You could configure the values above so that the performance impact of the generation
-  # process is minimal.
-  # The value should be a boolean <true/false>
-  pause-on-join: true
+  # The value should be a posivitve integer > 1.
+  pause-on-player-count: 1
 ```
 
 ### Spigot and Paper

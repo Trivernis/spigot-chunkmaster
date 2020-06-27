@@ -75,7 +75,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.chunks-per-step", 2)
         config.addDefault("generation.chunk-skips-per-step", 100)
         config.addDefault("generation.mspt-pause-threshold", 500L)
-        config.addDefault("generation.pause-on-join", true)
+        config.addDefault("generation.pause-on-player-count", 1)
         config.addDefault("generation.max-pending-chunks", 10)
         config.addDefault("generation.max-loaded-chunks", 10)
         config.addDefault("generation.ignore-worldborder", false)
