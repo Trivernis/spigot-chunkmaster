@@ -4,6 +4,7 @@ import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
+import java.lang.Exception
 import java.util.concurrent.CompletableFuture
 
 class GenerationTaskPaper(
@@ -92,7 +93,11 @@ class GenerationTaskPaper(
         }
         for (chunk in loadedChunks) {
             if (chunk.isLoaded) {
-                chunk.unload(true)
+                try {
+                    chunk.unload(true);
+                } catch (e: Exception){
+                    plugin.logger.severe(e.toString())
+                }
             }
         }
     }

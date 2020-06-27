@@ -33,12 +33,12 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 
 - `/chunkmaster generate [world] [radius] [<square|circle>]` Starts the generation until the specified chunk count or the world border is reached.
 - `/chunkmaster list` Lists all running generation tasks
-- `/chunkmaster cancel <Task id>` Cancels the generation task with the specified id (if it is running).
+- `/chunkmaster cancel <Task id|world name>` Cancels the generation task with the specified id (if it is running).
 - `/chunkmaster pause` Pauses all generation tasks until the resume command is executed.
 - `/chunkmaster resume` Resumes all paused generation tasks.
 - `/chunkmaster reload` Reloads the configuration file.
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
-- `/<command> setCenter [<world>] <chunkX> <chunkZ>` - sets the center chunk of the world
+- `/<command> setCenter [[<world>] <chunkX> <chunkZ>]]` - sets the center chunk of the world
 - `/<command> getCenter [<world>]` - returns the center chunk of the world
 
 #### Examples
@@ -114,13 +114,12 @@ generation:
   # The value should be a positive integer greater than 50.  
   mspt-pause-threshold: 500
 
-  # If the chunk generation process should pause on player join.
+  # Pauses the generation if the number of players on the server is larger or equal
+  # to the configured value
   # Notice that playing on a server that constantly generates chunks can be
   # very laggy and can cause it to crash.
-  # You could configure the values above so that the performance impact of the generation
-  # process is minimal.
-  # The value should be a boolean <true/false>
-  pause-on-join: true
+  # The value should be a posivitve integer > 1.
+  pause-on-player-count: 1
 ```
 
 ### Spigot and Paper
