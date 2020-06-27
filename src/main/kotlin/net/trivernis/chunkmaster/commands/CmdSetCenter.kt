@@ -29,26 +29,30 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
         val centerX: Int
         val centerZ: Int
 
-        if (args.size < 2) {
-            sender.sendMessage(chunkmaster.langManager.getLocalized("TOO_FEW_ARGUMENTS"))
-            return false
-        }
         if (sender is Player) {
-            if (args.size == 2) {
-                world = sender.world.name
-                if (args[0].toIntOrNull() == null || args[1].toIntOrNull() == null) {
-                    sender.sendMessage(chunkmaster.langManager.getLocalized("COORD_INVALID", args[0], args[1]))
-                    return false
+            when {
+                args.isEmpty() -> {
+                    world = sender.world.name
+                    centerX = sender.location.chunk.x
+                    centerZ = sender.location.chunk.z
                 }
-                centerX = args[0].toInt()
-                centerZ = args[1].toInt()
-            } else {
-                if (!validateThreeArgs(sender, args)) {
-                    return false
+                args.size == 2 -> {
+                    world = sender.world.name
+                    if (args[0].toIntOrNull() == null || args[1].toIntOrNull() == null) {
+                        sender.sendMessage(chunkmaster.langManager.getLocalized("COORD_INVALID", args[0], args[1]))
+                        return false
+                    }
+                    centerX = args[0].toInt()
+                    centerZ = args[1].toInt()
                 }
-                world = args[0]
-                centerX = args[1].toInt()
-                centerZ = args[2].toInt()
+                else -> {
+                    if (!validateThreeArgs(sender, args)) {
+                        return false
+                    }
+                    world = args[0]
+                    centerX = args[1].toInt()
+                    centerZ = args[2].toInt()
+                }
             }
         } else {
             if (args.size < 3) {

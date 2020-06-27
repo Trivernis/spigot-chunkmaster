@@ -19,7 +19,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     this.loadWorldCenters()
                 }
                 this.startAll()
-                if (!server.onlinePlayers.isEmpty()) {
+                if (server.onlinePlayers.size >= chunkmaster.config.getInt("generation.pause-on-player-count")) {
                     this.pauseAll()
                 }
             }
@@ -239,7 +239,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     /**
      * Overload that doesn't need an argument
      */
-    fun loadWorldCenters() {
+    private fun loadWorldCenters() {
         loadWorldCenters(null)
     }
 

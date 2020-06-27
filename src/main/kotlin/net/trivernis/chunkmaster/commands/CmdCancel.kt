@@ -30,14 +30,21 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
      * Cancels the generation task if it exists.
      */
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
-        return if (args.isNotEmpty() && args[0].toIntOrNull() != null) {
-            if (chunkmaster.generationManager.removeTask(args[0].toInt())) {
-                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELED", args[0]))
+        return if (args.isNotEmpty()) {
+            val index = if (args[0].toIntOrNull() != null) {
+                args[0].toInt()
+            } else {
+                chunkmaster.generationManager.tasks.find { it.generationTask.world.name == args[0] }?.id
+            }
+
+            if (index != null && chunkmaster.generationManager.removeTask(index)) {
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELED", index))
                 true
             } else {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_NOT_FOUND", args[0]))
                 false
             }
+
         } else {
             sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"));
             false
