@@ -106,15 +106,15 @@ class GenerationTaskPaper(
      * Checks if some chunks have been loaded and adds them to the loaded chunk set.
      */
     private fun checkChunksLoaded() {
-        val completedEntrys = HashSet<CompletableFuture<Chunk>>()
+        val completedEntries = HashSet<CompletableFuture<Chunk>>()
         for (pendingChunk in pendingChunks) {
             if (pendingChunk.isDone) {
-                completedEntrys.add(pendingChunk)
+                completedEntries.add(pendingChunk)
                 loadedChunks.add(pendingChunk.get())
             } else if (pendingChunk.isCompletedExceptionally || pendingChunk.isCancelled) {
-                completedEntrys.add(pendingChunk)
+                completedEntries.add(pendingChunk)
             }
         }
-        pendingChunks.removeAll(completedEntrys)
+        pendingChunks.removeAll(completedEntries)
     }
 }
