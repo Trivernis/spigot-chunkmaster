@@ -1,15 +1,15 @@
 package net.trivernis.chunkmaster
 
 import io.papermc.lib.PaperLib
-import net.trivernis.chunkmaster.commands.*
+import net.trivernis.chunkmaster.commands.CommandChunkmaster
 import net.trivernis.chunkmaster.lib.LanguageManager
-import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import net.trivernis.chunkmaster.lib.SqliteManager
+import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
-import java.lang.Exception
+import java.util.logging.Level
 
 class Chunkmaster: JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
@@ -26,6 +26,9 @@ class Chunkmaster: JavaPlugin() {
      */
     override fun onEnable() {
         PaperLib.suggestPaper(this)
+        logger.fine("LogLevel: FINE")
+        logger.finer("LogLevel: FINER")
+        logger.finest("LogLevel: FINEST")
         configure()
 
         val metrics = Metrics(this)

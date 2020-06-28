@@ -14,7 +14,7 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
     }
 
     override fun progress(): Double {
-        return (currentRadius()*2).toDouble().pow(2) / (radius * 2).toDouble().pow(2)
+        return (count / (radius * 2).toDouble().pow(2)).coerceAtMost(100.0)
     }
 
     override fun currentRadius(): Int {
