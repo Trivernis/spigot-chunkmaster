@@ -86,5 +86,8 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
 
         val cmdGetCenter = CmdGetCenter(chunkmaster)
         commands[cmdGetCenter.name] = cmdGetCenter
+
+        val cmdStats = CmdStats(chunkmaster)
+        commands[cmdStats.name] = cmdStats
     }
 }

@@ -40,6 +40,7 @@ All features can be accessed with the command `/chunkmaster` or the aliases `/ch
 - `/chunkmaster tpchunk <X> <Z>` Teleports you to the specified chunk coordinates.
 - `/<command> setCenter [[<world>] <chunkX> <chunkZ>]]` - sets the center chunk of the world
 - `/<command> getCenter [<world>]` - returns the center chunk of the world
+- `/<command> stats [<world>]` - returns the stats of the server or a specific world
 
 #### Examples
 **Generate a 100 chunks * 100 blocks square around the center:**
