@@ -55,7 +55,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
                 return false
             }
         }
-        if (args[0].toIntOrNull() != null) {
+        if (args[0].toIntOrNull() != null && sender.server.worlds.find { it.name == args[0] } == null) {
             if (sender !is Player) {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NAME_REQUIRED"))
                 return false
