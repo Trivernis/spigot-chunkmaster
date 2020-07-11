@@ -23,6 +23,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Logfile**
+Please add a logfile as either a file attachment or a link to something like pastebin.
+For crashes please also add the crashlog file.
+
 **Server (please complete the following information):**
  - OS: [e.g. Ubuntu 20]
  - Specs [e.g. Intel Xeon E5-2680, 8GB Ram]
