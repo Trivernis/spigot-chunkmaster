@@ -24,6 +24,7 @@ class GenerationTaskPaper(
 
     init {
         updateGenerationAreaMarker()
+        count = shape.count
     }
 
     /**

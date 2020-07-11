@@ -19,6 +19,7 @@ class GenerationTaskSpigot(
 
     init {
         updateGenerationAreaMarker()
+        count = shape.count
     }
 
     /**
