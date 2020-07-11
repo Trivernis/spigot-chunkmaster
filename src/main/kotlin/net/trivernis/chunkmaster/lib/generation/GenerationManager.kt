@@ -343,9 +343,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         shapeName: String
     ): GenerationTask {
         val shape = when (shapeName) {
-            "circle" -> Circle(Pair(center.x, center.z), Pair(center.x, center.z), radius)
-            "square" -> Spiral(Pair(center.x, center.z), Pair(center.x, center.z), radius)
-            else -> Spiral(Pair(center.x, center.z), Pair(center.x, center.z), radius)
+            "circle" -> Circle(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            "square" -> Spiral(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            else -> Spiral(Pair(center.x, center.z), Pair(start.x, start.z), radius)
         }
 
         return if (PaperLib.isPaper()) {
