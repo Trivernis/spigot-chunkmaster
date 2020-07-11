@@ -22,6 +22,11 @@ abstract class GenerationTask(
     abstract var count: Int
     abstract var endReached: Boolean
 
+    val loadedChunksCount: Int
+        get() {
+            return loadedChunks.size
+        }
+
     protected val loadedChunks: HashSet<Chunk> = HashSet()
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set

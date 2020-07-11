@@ -31,10 +31,11 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
      */
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         return if (args.isNotEmpty()) {
-            val index = if (args[0].toIntOrNull() != null) {
+            val entry = chunkmaster.generationManager.tasks.find { it.generationTask.world.name == args[0] }
+            val index = if (args[0].toIntOrNull() != null && entry == null) {
                 args[0].toInt()
             } else {
-                chunkmaster.generationManager.tasks.find { it.generationTask.world.name == args[0] }?.id
+                entry?.id
             }
 
             if (index != null && chunkmaster.generationManager.removeTask(index)) {
