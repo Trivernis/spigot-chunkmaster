@@ -133,6 +133,9 @@ isChunkGenerated method).
 
 This project is licensed under the GPLv3.0 License - see the [LICENSE](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FTrivernis%2Fspigot-chunkmaster.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FTrivernis%2Fspigot-chunkmaster?ref=badge_large)
+
 ## bStats
 
-[![Plugin statistics](https://bstats.org/signatures/bukkit/chunkmaster.svg)](https://bstats.org/plugin/bukkit/Chunkmaster/5639)
+[![Plugin statistics](https://bstats.org/signatures/bukkit/chunkmaster.svg)](https://bstats.org/plugin/bukkit/Chunkmaster/5639)[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FTrivernis%2Fspigot-chunkmaster.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FTrivernis%2Fspigot-chunkmaster?ref=badge_shield)
