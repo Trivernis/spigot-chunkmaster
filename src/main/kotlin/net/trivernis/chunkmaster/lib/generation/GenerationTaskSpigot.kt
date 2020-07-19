@@ -7,11 +7,12 @@ import java.lang.Exception
 
 class GenerationTaskSpigot(
     private val plugin: Chunkmaster,
+    unloader: ChunkUnloader,
     override val world: World,
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape
-) : GenerationTask(plugin, startChunk, shape) {
+) : GenerationTask(plugin, unloader, startChunk, shape) {
 
 
     override var count = 0
@@ -28,10 +29,8 @@ class GenerationTaskSpigot(
      * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
     override fun run() {
-        if (plugin.mspt < msptThreshold) {
-            if (loadedChunks.size > maxLoadedChunks) {
-                unloadLoadedChunks()
-            } else {
+        while (!cancel && !borderReachedCheck()) {
+            if (plugin.mspt < msptThreshold) {
                 if (borderReachedCheck()) return
 
                 var chunk = nextChunkCoordinates
@@ -39,12 +38,12 @@ class GenerationTaskSpigot(
                     if (borderReached()) break
                     val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                     chunkInstance.load(true)
-                    loadedChunks.add(chunkInstance)
+                    unloader.add(chunkInstance)
                     chunk = nextChunkCoordinates
                 }
                 val chunkInstance = world.getChunkAt(chunk.x, chunk.z)
                 chunkInstance.load(true)
-                loadedChunks.add(chunkInstance)
+                unloader.add(chunkInstance)
 
                 lastChunkCoords = chunk
                 count = shape.count
@@ -57,15 +56,7 @@ class GenerationTaskSpigot(
      * This unloads all chunks that were generated but not unloaded yet.
      */
     override fun cancel() {
-        for (chunk in loadedChunks) {
-            if (chunk.isLoaded) {
-                try {
-                    chunk.unload(true)
-                } catch (e: Exception) {
-                    plugin.logger.severe(e.toString())
-                }
-            }
-        }
+        cancel = true
         updateGenerationAreaMarker(true)
         updateLastChunkMarker(true)
     }

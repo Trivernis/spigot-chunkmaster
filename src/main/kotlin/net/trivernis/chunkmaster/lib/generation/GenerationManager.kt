@@ -12,6 +12,13 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val tasks: HashSet<RunningTaskEntry> = HashSet()
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
     val worldCenters: HashMap<String, Pair<Int, Int>> = HashMap()
+    val loadedChunkCount: Int
+        get() {
+            return unloader.pendingSize
+        }
+    private val unloader = ChunkUnloader(chunkmaster)
+
+
     val allTasks: HashSet<TaskEntry>
         get() {
             if (this.tasks.isEmpty() && this.pausedTasks.isEmpty()) {
@@ -78,9 +85,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             }
 
             if (!paused) {
-                val task = server.scheduler.runTaskTimer(
-                    chunkmaster, generationTask, 200,  // 10 sec delay
-                    chunkmaster.config.getLong("generation.period")
+                val task = server.scheduler.runTaskAsynchronously(
+                    chunkmaster, generationTask
                 )
                 tasks.add(RunningTaskEntry(id, task, generationTask))
             } else {
@@ -102,15 +108,13 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         last: ChunkCoordinates,
         id: Int,
         radius: Int = -1,
-        delay: Long = 200L,
         shape: String = "square"
     ) {
         if (!paused) {
             chunkmaster.logger.info(chunkmaster.langManager.getLocalized("RESUME_FOR_WORLD", world.name))
             val generationTask = createGenerationTask(world, center, last, radius, shape)
-            val task = server.scheduler.runTaskTimer(
-                chunkmaster, generationTask, delay,
-                chunkmaster.config.getLong("generation.period")
+            val task = server.scheduler.runTaskAsynchronously(
+                chunkmaster, generationTask
             )
             tasks.add(RunningTaskEntry(id, task, generationTask))
             generationTask.onEndReached {
@@ -130,7 +134,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             this.tasks.find { it.id == id }
         }
         if (taskEntry != null) {
-            taskEntry.cancel()
+            if (taskEntry.generationTask.isRunning) {
+                taskEntry.cancel()
+            }
             chunkmaster.sqliteManager.executeStatement("""
                 DELETE FROM generation_tasks WHERE id = ?;
                 """.trimIndent(), HashMap(mapOf(1 to taskEntry.id)),
@@ -138,9 +144,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             )
 
             if (taskEntry is RunningTaskEntry) {
-                if (taskEntry.task.isCancelled) {
-                    tasks.remove(taskEntry)
-                }
+                tasks.remove(taskEntry)
             } else if (taskEntry is PausedTaskEntry) {
                 pausedTasks.remove(taskEntry)
             }
@@ -165,6 +169,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 this.pauseAll()
             }
         }, 20)
+        server.scheduler.runTaskTimer(chunkmaster, unloader, 100, 100)
     }
 
     /**
@@ -177,14 +182,16 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             val id = task.id
             chunkmaster.logger.info(chunkmaster.langManager.getLocalized("SAVING_TASK_PROGRESS", task.id))
             saveProgressToDatabase(lastChunk, id)
-            task.task.cancel()
-            task.generationTask.cancel()
-            if (task.task.isCancelled) {
-                removalSet.add(task)
-            }
-            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_CANCELED", task.id))
+            task.cancel()
+            removalSet.add(task)
+
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_CANCELLED", task.id))
         }
         tasks.removeAll(removalSet)
+        if (unloader.pendingSize > 0) {
+            chunkmaster.logger.info(chunkmaster.langManager.getLocalized("SAVING_CHUNKS", unloader.pendingSize))
+            unloader.run()
+        }
     }
 
     /**
@@ -203,7 +210,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     val radius = res.getInt("radius")
                     val shape = res.getString("shape")
                     if (this.tasks.find { it.id == id } == null) {
-                        resumeTask(world!!, center, last, id, radius, 200L + count, shape)
+                        resumeTask(world!!, center, last, id, radius, shape)
                     }
                 } catch (error: NullPointerException) {
                     chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", res.getInt("id")))
@@ -349,9 +356,9 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         }
 
         return if (PaperLib.isPaper()) {
-            GenerationTaskPaper(chunkmaster, world, start, radius, shape)
+            GenerationTaskPaper(chunkmaster, unloader, world, start, radius, shape)
         } else {
-            GenerationTaskSpigot(chunkmaster, world, start, radius, shape)
+            GenerationTaskSpigot(chunkmaster, unloader, world, start, radius, shape)
         }
     }
 }

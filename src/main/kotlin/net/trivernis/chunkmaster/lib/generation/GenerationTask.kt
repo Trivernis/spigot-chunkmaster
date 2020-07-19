@@ -5,13 +5,13 @@ import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
-import java.lang.Exception
 
 /**
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
     private val plugin: Chunkmaster,
+    protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
     val shape: Shape
 ) :
@@ -21,19 +21,16 @@ abstract class GenerationTask(
     abstract val world: World
     abstract var count: Int
     abstract var endReached: Boolean
+    val isRunning: Boolean
+    get() {
+        return !this.cancel
+    }
 
-    val loadedChunksCount: Int
-        get() {
-            return loadedChunks.size
-        }
-
-    protected val loadedChunks: HashSet<Chunk> = HashSet()
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set
-    protected val chunkSkips = plugin.config.getInt("generation.chunk-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
-    protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
     protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
+    protected var cancel: Boolean = false
 
     private var endReachedCallback: ((GenerationTask) -> Unit)? = null
 
@@ -67,26 +64,6 @@ abstract class GenerationTask(
     protected fun borderReached(): Boolean {
         return (!world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) && !ignoreWorldborder)
                 || shape.endReached()
-    }
-
-    /**
-     * Unloads all chunks that have been loaded
-     */
-    protected fun unloadLoadedChunks() {
-        for (chunk in loadedChunks) {
-            if (chunk.isLoaded) {
-                try {
-                    chunk.unload(true)
-                } catch (e: Exception) {
-                    plugin.logger.severe(e.toString())
-                }
-            }
-            if (dynmapIntegration) {
-                dynmap?.triggerRenderOfVolume(chunk.getBlock(0, 0, 0).location, chunk.getBlock(15, 255, 15).location)
-            }
-        }
-
-        loadedChunks.clear()
     }
 
     /**
@@ -139,7 +116,6 @@ abstract class GenerationTask(
     protected fun borderReachedCheck(): Boolean {
         val done = borderReached()
         if (done) {
-            unloadLoadedChunks()
             setEndReached()
         }
         return done

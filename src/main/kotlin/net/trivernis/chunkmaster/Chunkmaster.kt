@@ -67,6 +67,7 @@ class Chunkmaster: JavaPlugin() {
     override fun onDisable() {
         logger.info(langManager.getLocalized("STOPPING_ALL_TASKS"))
         generationManager.stopAll()
+        server.scheduler.cancelTasks(this)
     }
 
     /**
@@ -74,13 +75,13 @@ class Chunkmaster: JavaPlugin() {
      */
     private fun configure() {
         dataFolder.mkdir()
-        config.addDefault("generation.period", 2L)
-        config.addDefault("generation.chunks-per-step", 2)
-        config.addDefault("generation.chunk-skips-per-step", 100)
+        config.addDefault("generation.period", 1L)
+        config.addDefault("generation.chunks-per-step", 20)
+        config.addDefault("generation.chunk-skips-per-step", 1000)
         config.addDefault("generation.mspt-pause-threshold", 500L)
         config.addDefault("generation.pause-on-player-count", 1)
-        config.addDefault("generation.max-pending-chunks", 10)
-        config.addDefault("generation.max-loaded-chunks", 10)
+        config.addDefault("generation.max-pending-chunks", 40)
+        config.addDefault("generation.max-loaded-chunks", 1000)
         config.addDefault("generation.ignore-worldborder", false)
         config.addDefault("database.filename", "chunkmaster.db")
         config.addDefault("language", "en")

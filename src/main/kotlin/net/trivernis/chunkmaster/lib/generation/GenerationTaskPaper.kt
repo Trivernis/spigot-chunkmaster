@@ -1,23 +1,25 @@
 package net.trivernis.chunkmaster.lib.generation
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.Chunk
 import org.bukkit.World
 import java.lang.Exception
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.*
+import kotlin.math.max
 
 class GenerationTaskPaper(
     private val plugin: Chunkmaster,
+    unloader: ChunkUnloader,
     override val world: World,
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape
-) : GenerationTask(plugin, startChunk, shape) {
+) : GenerationTask(plugin, unloader, startChunk, shape) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
-
-    private val pendingChunks = HashSet<CompletableFuture<Chunk>>()
+    private val maxChunks = Semaphore(this.maxPendingChunks)
 
     override var count = 0
     override var endReached: Boolean = false
@@ -33,38 +35,30 @@ class GenerationTaskPaper(
      * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
     override fun run() {
-        if (plugin.mspt < msptThreshold) {
-            if (loadedChunks.size > maxLoadedChunks) {
-                unloadLoadedChunks()
-            } else if (pendingChunks.size < maxPendingChunks) {
-                if (borderReachedCheck()) return
+        var chunk: ChunkCoordinates
+        do {
+            chunk = nextChunkCoordinates
+        } while (world.isChunkGenerated(chunk.x, chunk.z));
 
-                var chunk = nextChunkCoordinates
-                for (i in 0 until chunkSkips) {
-                    if (world.isChunkGenerated(chunk.x, chunk.z)) {
-                        chunk = nextChunkCoordinates
-                    } else {
-                        break
-                    }
-                }
+        while (!cancel && !borderReachedCheck()) {
+            if (plugin.mspt < msptThreshold) {
+                chunk = nextChunkCoordinates
 
                 if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                    for (i in 0 until chunksPerStep) {
-                        if (borderReached()) break
-                        if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                            pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
-                        }
-                        chunk = nextChunkCoordinates
-                    }
-                    if (!world.isChunkGenerated(chunk.x, chunk.z)) {
-                        pendingChunks.add(world.getChunkAtAsync(chunk.x, chunk.z, true))
+                    maxChunks.acquireUninterruptibly()
+                    world.getChunkAtAsync(chunk.x, chunk.z, true).thenAccept {
+                        this.unloader.add(it)
+                        maxChunks.release()
                     }
                 }
-                lastChunkCoords = chunk
-                count = shape.count
+                this.lastChunkCoords = chunk
+                this.count = shape.count
             }
         }
-        checkChunksLoaded()
+        println("Waiting for tasks to finish...")
+        maxChunks.acquireUninterruptibly(this.maxPendingChunks)
+
+        println("Task stopped")
     }
 
     /**
@@ -72,50 +66,9 @@ class GenerationTaskPaper(
      * This unloads all chunks that were generated but not unloaded yet.
      */
     override fun cancel() {
+        this.cancel = true
+        maxChunks.acquireUninterruptibly(this.maxPendingChunks)
         updateGenerationAreaMarker(true)
         updateLastChunkMarker(true)
-        unloadAllChunks()
-    }
-
-    /**
-     * Cancels all pending chunks and unloads all loaded chunks.
-     */
-    private fun unloadAllChunks() {
-        for (pendingChunk in pendingChunks) {
-            if (pendingChunk.isDone) {
-                loadedChunks.add(pendingChunk.get())
-            } else {
-                pendingChunk.cancel(true)
-            }
-        }
-        pendingChunks.clear()
-        if (loadedChunks.isNotEmpty()) {
-            lastChunkCoords = ChunkCoordinates(loadedChunks.last().x, loadedChunks.last().z)
-        }
-        for (chunk in loadedChunks) {
-            if (chunk.isLoaded) {
-                try {
-                    chunk.unload(true);
-                } catch (e: Exception){
-                    plugin.logger.severe(e.toString())
-                }
-            }
-        }
-    }
-
-    /**
-     * Checks if some chunks have been loaded and adds them to the loaded chunk set.
-     */
-    private fun checkChunksLoaded() {
-        val completedEntries = HashSet<CompletableFuture<Chunk>>()
-        for (pendingChunk in pendingChunks) {
-            if (pendingChunk.isDone) {
-                completedEntries.add(pendingChunk)
-                loadedChunks.add(pendingChunk.get())
-            } else if (pendingChunk.isCompletedExceptionally || pendingChunk.isCancelled) {
-                completedEntries.add(pendingChunk)
-            }
-        }
-        pendingChunks.removeAll(completedEntries)
     }
 }

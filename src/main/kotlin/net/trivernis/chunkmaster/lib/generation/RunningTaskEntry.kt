@@ -4,7 +4,7 @@ import org.bukkit.scheduler.BukkitTask
 
 class RunningTaskEntry(
     override val id: Int,
-    val task: BukkitTask,
+    private val task: BukkitTask,
     override val generationTask: GenerationTask
 ) : TaskEntry {
 
@@ -40,7 +40,7 @@ class RunningTaskEntry(
 
 
     override fun cancel() {
-        task.cancel()
         generationTask.cancel()
+        task.cancel()
     }
 }
