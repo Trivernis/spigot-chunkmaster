@@ -380,17 +380,19 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         ) {
             if (generationTask is GenerationTaskPaper) {
                 this.deletePendingChunks(id)
-                var sql = "INSERT INTO paper_pending_chunks (task_id, chunk_x, chunk_z) VALUES"
-                var index = 1
-                val valueMap= HashMap<Int, Any>()
+                if (generationTask.pendingChunks.size > 0) {
+                    var sql = "INSERT INTO paper_pending_chunks (task_id, chunk_x, chunk_z) VALUES"
+                    var index = 1
+                    val valueMap= HashMap<Int, Any>()
 
-                for (pending in generationTask.pendingChunks) {
-                    sql += "(?, ?, ?),"
-                    valueMap[index++] = id
-                    valueMap[index++] = pending.coordinates.x
-                    valueMap[index++] = pending.coordinates.z
+                    for (pending in generationTask.pendingChunks) {
+                        sql += "(?, ?, ?),"
+                        valueMap[index++] = id
+                        valueMap[index++] = pending.coordinates.x
+                        valueMap[index++] = pending.coordinates.z
+                    }
+                    chunkmaster.sqliteManager.executeStatement(sql.removeSuffix(","), valueMap, null)
                 }
-                chunkmaster.sqliteManager.executeStatement(sql.removeSuffix(","), valueMap, null)
             }
         }
     }

@@ -82,6 +82,7 @@ abstract class GenerationTask(
 
     /**
      * Updates the dynmap marker for the generation radius
+     * FIXME
      */
     fun updateLastChunkMarker(clear: Boolean = false) {
         if (clear) {
