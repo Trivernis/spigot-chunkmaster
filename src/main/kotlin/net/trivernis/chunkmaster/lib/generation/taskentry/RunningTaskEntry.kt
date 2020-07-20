@@ -1,15 +1,15 @@
-package net.trivernis.chunkmaster.lib.generation
+package net.trivernis.chunkmaster.lib.generation.taskentry
 
-import org.bukkit.scheduler.BukkitTask
+import net.trivernis.chunkmaster.lib.generation.GenerationTask
 
 class RunningTaskEntry(
     override val id: Int,
-    private val task: BukkitTask,
     override val generationTask: GenerationTask
 ) : TaskEntry {
 
     private var lastProgress: Pair<Long, Double>? = null
     private var lastChunkCount: Pair<Long, Int>? = null
+    private var thread = Thread(generationTask)
 
     /**
      * Returns the generation Speed
@@ -38,9 +38,15 @@ class RunningTaskEntry(
         lastChunkCount = Pair(System.currentTimeMillis(), generationTask.count)
     }
 
+    fun start() {
+        thread.start()
+    }
 
-    override fun cancel() {
-        generationTask.cancel()
-        task.cancel()
+    fun cancel(timeout: Long) {
+        if (generationTask.isRunning) {
+            generationTask.cancel()
+            thread.interrupt()
+        }
+        thread.join(timeout)
     }
 }

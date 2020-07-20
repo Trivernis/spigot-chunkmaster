@@ -35,6 +35,6 @@ class ChunkUnloader(private val plugin: Chunkmaster): Runnable {
      * Adds a chunk to unload to the queue
      */
     fun add(chunk: Chunk) {
-        unloadingQueue.add(chunk)
+        unloadingQueue.put(chunk)
     }
 }

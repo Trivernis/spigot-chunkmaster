@@ -3,8 +3,8 @@ package net.trivernis.chunkmaster.lib.generation
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
-import org.bukkit.Chunk
 import org.bukkit.World
+import java.util.concurrent.Semaphore
 
 /**
  * Interface for generation tasks.
@@ -13,7 +13,8 @@ abstract class GenerationTask(
     private val plugin: Chunkmaster,
     protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
-    val shape: Shape
+    val shape: Shape,
+    protected val previousPendingChunks: List<ChunkCoordinates>
 ) :
     Runnable {
 
@@ -21,16 +22,13 @@ abstract class GenerationTask(
     abstract val world: World
     abstract var count: Int
     abstract var endReached: Boolean
-    val isRunning: Boolean
-    get() {
-        return !this.cancel
-    }
+    var isRunning: Boolean = false
 
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
     protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
-    protected var cancel: Boolean = false
+    protected var cancelRun: Boolean = false
 
     private var endReachedCallback: ((GenerationTask) -> Unit)? = null
 

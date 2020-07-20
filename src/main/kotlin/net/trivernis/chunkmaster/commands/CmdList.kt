@@ -2,7 +2,7 @@ package net.trivernis.chunkmaster.commands
 
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
-import net.trivernis.chunkmaster.lib.generation.TaskEntry
+import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
