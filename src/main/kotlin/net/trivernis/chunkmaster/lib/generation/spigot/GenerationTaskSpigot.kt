@@ -4,6 +4,7 @@ import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import net.trivernis.chunkmaster.lib.generation.ChunkUnloader
 import net.trivernis.chunkmaster.lib.generation.GenerationTask
+import net.trivernis.chunkmaster.lib.generation.TaskState
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
 
@@ -14,8 +15,9 @@ class GenerationTaskSpigot(
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape,
-    previousPendingChunks: List<ChunkCoordinates>
-) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks) {
+    previousPendingChunks: List<ChunkCoordinates>,
+    state: TaskState
+) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks, state) {
 
 
     override var count = 0
@@ -31,7 +33,7 @@ class GenerationTaskSpigot(
      * they haven't been generated already
      * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
-    override fun run() {
+    override fun generate() {
         isRunning = true
         try {
             for (pending in this.previousPendingChunks) {
@@ -55,6 +57,10 @@ class GenerationTaskSpigot(
         isRunning = false
     }
 
+    override fun validate() {
+        TODO("Not yet implemented")
+    }
+
     /**
      * Cancels the generation task.
      * This unloads all chunks that were generated but not unloaded yet.
@@ -62,6 +68,5 @@ class GenerationTaskSpigot(
     override fun cancel() {
         cancelRun = true
         updateGenerationAreaMarker(true)
-        updateLastChunkMarker(true)
     }
 }

@@ -4,6 +4,7 @@ import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import net.trivernis.chunkmaster.lib.generation.ChunkUnloader
 import net.trivernis.chunkmaster.lib.generation.GenerationTask
+import net.trivernis.chunkmaster.lib.generation.TaskState
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
 import java.util.concurrent.*
@@ -15,8 +16,9 @@ class GenerationTaskPaper(
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape,
-    previousPendingChunks: List<ChunkCoordinates>
-) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks) {
+    previousPendingChunks: List<ChunkCoordinates>,
+    state: TaskState
+) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks, state) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
     val pendingChunks = ArrayBlockingQueue<PendingChunkEntry>(maxPendingChunks)
@@ -34,28 +36,46 @@ class GenerationTaskPaper(
      * they haven't been generated already
      * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
-    override fun run() {
+    override fun generate() {
         try {
-            isRunning = true
             for (pending in this.previousPendingChunks) {
                 this.requestGeneration(pending)
             }
-            var chunkCoordinates: ChunkCoordinates
-            do {
-                chunkCoordinates = nextChunkCoordinates
-            } while (world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z));
 
-            while (!cancelRun && !borderReachedCheck()) {
-                if (plugin.mspt < msptThreshold) {
-                    chunkCoordinates = nextChunkCoordinates
-                    this.requestGeneration(chunkCoordinates)
-
-                    this.lastChunkCoords = chunkCoordinates
-                    this.count = shape.count
-                }
-            }
+            seekGenerated()
+            generateUntilBorder()
         } catch (_: InterruptedException){}
-        isRunning = false
+    }
+
+    /**
+     * Validates that all chunks have been generated or generates missing ones
+     */
+    override fun validate() {
+        generateUntilBorder()
+    }
+
+    /**
+     * Seeks until it encounters a chunk that hasn't been generated yet
+     */
+    private fun seekGenerated() {
+        var chunkCoordinates: ChunkCoordinates
+        do {
+            chunkCoordinates = nextChunkCoordinates
+        } while (world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z));
+        lastChunkCoords = chunkCoordinates
+    }
+
+    private fun generateUntilBorder() {
+        var chunkCoordinates = lastChunkCoords
+        while (!cancelRun && !borderReachedCheck()) {
+            if (plugin.mspt < msptThreshold) {
+                chunkCoordinates = nextChunkCoordinates
+                this.requestGeneration(chunkCoordinates)
+
+                this.lastChunkCoords = chunkCoordinates
+                this.count = shape.count
+            }
+        }
     }
 
     /**
@@ -80,6 +100,5 @@ class GenerationTaskPaper(
         this.cancelRun = true
         this.pendingChunks.forEach { it.chunk.cancel(false) }
         updateGenerationAreaMarker(true)
-        updateLastChunkMarker(true)
     }
 }

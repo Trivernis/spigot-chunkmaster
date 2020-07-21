@@ -14,7 +14,8 @@ abstract class GenerationTask(
     protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
     val shape: Shape,
-    protected val previousPendingChunks: List<ChunkCoordinates>
+    protected val previousPendingChunks: List<ChunkCoordinates>,
+    var state: TaskState
 ) :
     Runnable {
 
@@ -27,7 +28,6 @@ abstract class GenerationTask(
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
-    protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
     protected var cancelRun: Boolean = false
 
     private var endReachedCallback: ((GenerationTask) -> Unit)? = null
@@ -42,13 +42,21 @@ abstract class GenerationTask(
     private val markerAreaStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0022FF), FillStyle(.0, 0))
     private val markerAreaId = "chunkmaster_genarea"
     private val markerAreaName = "Chunkmaster Generation Area"
-    private val markerLastStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0077FF), FillStyle(.5, 0x0077FF))
-    private val markerLastId = "chunkmaster_lastchunk"
-    private val markerLastName = "Chunkmaster Last Chunk"
     private val ignoreWorldborder = plugin.config.getBoolean("generation.ignore-worldborder")
 
-    abstract override fun run()
+    abstract fun generate()
+    abstract fun validate()
     abstract fun cancel()
+
+    override fun run() {
+        isRunning = true
+        when (state) {
+            TaskState.GENERATING -> this.generate()
+            TaskState.VALIDATING -> this.validate()
+            else -> { }
+        }
+        isRunning = false
+    }
 
     val nextChunkCoordinates: ChunkCoordinates
         get() {
@@ -59,7 +67,7 @@ abstract class GenerationTask(
     /**
      * Checks if the World border or the maximum chunk setting for the task is reached.
      */
-    protected fun borderReached(): Boolean {
+    private fun borderReached(): Boolean {
         return (!world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) && !ignoreWorldborder)
                 || shape.endReached()
     }
@@ -81,24 +89,6 @@ abstract class GenerationTask(
     }
 
     /**
-     * Updates the dynmap marker for the generation radius
-     * FIXME
-     */
-    fun updateLastChunkMarker(clear: Boolean = false) {
-        if (clear) {
-            markerSet?.deleteAreaMarker(markerLastId)
-        } else if (dynmapIntegration) {
-            markerSet?.creUpdateAreMarker(
-                markerLastId,
-                markerLastName,
-                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(0, 0, 0).location,
-                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(15, 0, 15).location,
-                markerLastStyle
-            )
-        }
-    }
-
-    /**
      * Handles the invocation of the end reached callback and additional logic
      */
     private fun setEndReached() {
@@ -106,7 +96,6 @@ abstract class GenerationTask(
         count = shape.count
         endReachedCallback?.invoke(this)
         updateGenerationAreaMarker(true)
-        updateLastChunkMarker(true)
     }
 
     /**

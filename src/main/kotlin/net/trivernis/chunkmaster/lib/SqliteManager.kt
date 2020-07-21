@@ -19,7 +19,8 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 Pair("last_z", "integer NOT NULL DEFAULT 0"),
                 Pair("world", "text UNIQUE NOT NULL DEFAULT 'world'"),
                 Pair("radius", "integer DEFAULT -1"),
-                Pair("shape", "text NOT NULL DEFAULT 'square'")
+                Pair("shape", "text NOT NULL DEFAULT 'square'"),
+                Pair("state", "text NOT NULL DEFAULT 'GENERATING'")
             )
         ),
         Pair(

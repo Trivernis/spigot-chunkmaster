@@ -359,7 +359,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     genTask.lastChunkCoords.x,
                     genTask.lastChunkCoords.z))
                 saveProgressToDatabase(genTask, task.id)
-                genTask.updateLastChunkMarker()
             } catch (error: Exception) {
                 chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }
@@ -423,7 +422,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 start,
                 radius,
                 shape,
-                pendingChunks ?: emptyList()
+                pendingChunks ?: emptyList(),
+                TaskState.GENERATING
             )
         } else {
             GenerationTaskSpigot(
@@ -433,7 +433,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 start,
                 radius,
                 shape,
-                pendingChunks ?: emptyList()
+                pendingChunks ?: emptyList(),
+                TaskState.GENERATING
             )
         }
     }
