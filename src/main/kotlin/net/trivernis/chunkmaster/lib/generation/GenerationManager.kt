@@ -16,7 +16,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
 
     val tasks: HashSet<RunningTaskEntry> = HashSet()
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
-    val worldCenters: HashMap<String, Pair<Int, Int>> = HashMap()
+    val worldProperties = chunkmaster.sqliteManager.worldProperties
+
     val loadedChunkCount: Int
         get() {
             return unloader.pendingSize
@@ -27,9 +28,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val allTasks: HashSet<TaskEntry>
         get() {
             if (this.tasks.isEmpty() && this.pausedTasks.isEmpty()) {
-                if (this.worldCenters.isEmpty()) {
-                    this.loadWorldCenters()
-                }
                 this.startAll()
                 if (server.onlinePlayers.size >= chunkmaster.config.getInt("generation.pause-on-player-count")) {
                     this.pauseAll()
@@ -49,10 +47,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     fun addTask(world: World, radius: Int = -1, shape: String = "square"): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
         if (foundTask == null) {
-            val centerChunk = if (worldCenters[world.name] == null) {
+            val center = worldProperties.getWorldCenter(world.name).join()
+
+            val centerChunk = if (center == null) {
                 ChunkCoordinates(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
             } else {
-                val center = worldCenters[world.name]!!
                 ChunkCoordinates(center.first, center.second)
             }
             val generationTask = createGenerationTask(world, centerChunk, centerChunk, radius, shape, null)
@@ -179,7 +178,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             saveProgress()      // save progress every 30 seconds
         }, 600, 600)
         server.scheduler.runTaskLater(chunkmaster, Runnable {
-            this.loadWorldCenters()
             this.startAll()
             if (!server.onlinePlayers.isEmpty()) {
                 this.pauseAll()
@@ -283,51 +281,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     private fun deletePendingChunks(taskId: Int) {
         chunkmaster.sqliteManager.executeStatement("DELETE FROM paper_pending_chunks WHERE task_id = ?", hashMapOf(1 to taskId), null)
-    }
-
-    /**
-     * Overload that doesn't need an argument
-     */
-    private fun loadWorldCenters() {
-        loadWorldCenters(null)
-    }
-
-    /**
-     * Loads the world centers from the database
-     */
-    fun loadWorldCenters(cb: (() -> Unit)?) {
-        chunkmaster.sqliteManager.executeStatement("SELECT * FROM world_properties", HashMap()) {
-            while (it!!.next()) {
-                worldCenters[it.getString("name")] = Pair(it.getInt("center_x"), it.getInt("center_z"))
-            }
-            cb?.invoke()
-        }
-    }
-
-    /**
-     * Updates the center of a world
-     */
-    fun updateWorldCenter(worldName: String, center: Pair<Int, Int>) {
-        chunkmaster.sqliteManager.executeStatement("SELECT * FROM world_properties WHERE name = ?", HashMap(mapOf(1 to worldName))) {
-            if (it!!.next()) {
-                chunkmaster.sqliteManager.executeStatement("UPDATE world_properties SET center_x = ?, center_z = ? WHERE name = ?",
-                    hashMapOf(
-                        1 to center.first,
-                        2 to center.second,
-                        3 to worldName
-                    )
-                , null)
-            } else {
-                chunkmaster.sqliteManager.executeStatement("INSERT INTO world_properties (name, center_x, center_z) VALUES (?, ?, ?)",
-                    hashMapOf(
-                        1 to worldName,
-                        2 to center.first,
-                        3 to center.second
-                    )
-                , null)
-            }
-        }
-        worldCenters[worldName] = center
     }
 
     /**

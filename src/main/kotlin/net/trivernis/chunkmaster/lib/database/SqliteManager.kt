@@ -1,4 +1,4 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.database
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.apache.commons.lang.exception.ExceptionUtils
@@ -45,6 +45,8 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     private val needCreation = HashSet<String>()
     private var connection: Connection? = null
     private var activeTasks = 0
+
+    val worldProperties = WorldProperties(this)
 
     /**
      * Returns the connection to the database

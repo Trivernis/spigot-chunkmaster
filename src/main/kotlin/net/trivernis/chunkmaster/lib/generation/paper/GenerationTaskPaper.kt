@@ -49,6 +49,8 @@ class GenerationTaskPaper(
 
     /**
      * Validates that all chunks have been generated or generates missing ones
+     * TODO: Just validate and store information about missing chunks.
+     *       Generate missing chunks later
      */
     override fun validate() {
         generateUntilBorder()
@@ -66,7 +68,7 @@ class GenerationTaskPaper(
     }
 
     private fun generateUntilBorder() {
-        var chunkCoordinates = lastChunkCoords
+        var chunkCoordinates: ChunkCoordinates
         while (!cancelRun && !borderReachedCheck()) {
             if (plugin.mspt < msptThreshold) {
                 chunkCoordinates = nextChunkCoordinates
