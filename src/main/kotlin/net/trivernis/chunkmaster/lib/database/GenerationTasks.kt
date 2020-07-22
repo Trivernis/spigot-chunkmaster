@@ -74,14 +74,14 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
         return completableFuture
     }
 
-    fun updateLastChunk(id: Int, last: ChunkCoordinates): CompletableFuture<Void> {
+    fun updateGenerationTask(id: Int, last: ChunkCoordinates, state: TaskState): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
         sqliteManager.executeStatement(
             """
-            UPDATE generation_tasks SET last_x = ?, last_z = ?
+            UPDATE generation_tasks SET last_x = ?, last_z = ?, state = ?
             WHERE id = ?
             """.trimIndent(),
-            hashMapOf(1 to last.x, 2 to last.z, 3 to id)
+            hashMapOf(1 to last.x, 2 to last.z, 3 to id, 4 to state.toString())
         ) {
             completableFuture.complete(null)
         }
@@ -97,6 +97,7 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
             "GENERATING" -> TaskState.GENERATING
             "VALIDATING" -> TaskState.VALIDATING
             "PAUSING" -> TaskState.PAUSING
+            "SEEKING" -> TaskState.SEEKING
             else -> TaskState.GENERATING
         }
     }
@@ -109,6 +110,7 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
             TaskState.GENERATING -> "GENERATING"
             TaskState.VALIDATING -> "VALIDATING"
             TaskState.PAUSING -> "PAUSING"
+            TaskState.SEEKING -> "SEEKING"
         }
     }
 }

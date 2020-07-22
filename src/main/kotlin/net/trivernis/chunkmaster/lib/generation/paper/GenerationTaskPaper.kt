@@ -42,7 +42,9 @@ class GenerationTaskPaper(
                 this.requestGeneration(pending)
             }
 
+            this.state = TaskState.SEEKING
             seekGenerated()
+            this.state = TaskState.GENERATING
             generateUntilBorder()
         } catch (_: InterruptedException){}
     }
@@ -53,6 +55,7 @@ class GenerationTaskPaper(
      *       Generate missing chunks later
      */
     override fun validate() {
+        this.state = TaskState.VALIDATING
         generateUntilBorder()
     }
 
@@ -67,6 +70,9 @@ class GenerationTaskPaper(
         lastChunkCoords = chunkCoordinates
     }
 
+    /**
+     * Generates the world until it encounters the worlds border
+     */
     private fun generateUntilBorder() {
         var chunkCoordinates: ChunkCoordinates
         while (!cancelRun && !borderReachedCheck()) {

@@ -109,6 +109,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
         activeTasks++
         if (connection != null) {
             try {
+                //println("'$sql' with values $values")
                 val statement = connection.prepareStatement(sql)
                 for (parameterValue in values) {
                     statement.setObject(parameterValue.key, parameterValue.value)

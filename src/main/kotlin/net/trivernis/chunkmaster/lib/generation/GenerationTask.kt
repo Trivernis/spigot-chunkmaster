@@ -10,7 +10,7 @@ import java.util.concurrent.Semaphore
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
-    private val plugin: Chunkmaster,
+    plugin: Chunkmaster,
     protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
     val shape: Shape,

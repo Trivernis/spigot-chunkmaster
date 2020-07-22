@@ -53,6 +53,6 @@ class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
         else
             ""
         return "\n" + chunkmaster.langManager.getLocalized("TASKS_ENTRY",
-            task.id, genTask.world.name, genTask.count, percentage)
+            task.id, genTask.world.name, genTask.state.toString(), genTask.count, percentage)
     }
 }

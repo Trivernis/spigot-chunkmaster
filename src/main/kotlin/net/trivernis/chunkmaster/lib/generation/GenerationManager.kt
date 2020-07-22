@@ -249,6 +249,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     "TASK_PERIODIC_REPORT",
                     task.id,
                     genTask.world.name,
+                    genTask.state.toString(),
                     genTask.count,
                     percentage,
                     eta,
@@ -266,7 +267,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Saves the generation progress to the database
      */
     private fun saveProgressToDatabase(generationTask: GenerationTask, id: Int) {
-        generationTasks.updateLastChunk(id, generationTask.lastChunkCoords).thenAccept{
+        generationTasks.updateGenerationTask(id, generationTask.lastChunkCoords, generationTask.state).thenAccept{
             if (generationTask is GenerationTaskPaper) {
                 if (generationTask.pendingChunks.size > 0) {
                     pendingChunksTable.clearPendingChunks(id).thenAccept {
