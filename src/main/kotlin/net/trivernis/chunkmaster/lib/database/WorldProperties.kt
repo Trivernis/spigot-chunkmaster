@@ -17,7 +17,7 @@ class WorldProperties(private val sqliteManager: SqliteManager) {
             completableFuture.complete(properties[worldName])
         } else {
             sqliteManager.executeStatement("SELECT * FROM world_properties WHERE name = ?", hashMapOf(1 to worldName)) {
-                if (it?.next() != null) {
+                if (it != null && it.next()) {
                     completableFuture.complete(Pair(it.getInt("center_x"), it.getInt("center_z")))
                 } else {
                     completableFuture.complete(null)
