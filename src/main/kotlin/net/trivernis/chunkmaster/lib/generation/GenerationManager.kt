@@ -17,6 +17,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val tasks: HashSet<RunningTaskEntry> = HashSet()
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
     val worldProperties = chunkmaster.sqliteManager.worldProperties
+    val pendingChunksTable = chunkmaster.sqliteManager.pendingChunks
 
     val loadedChunkCount: Int
         get() {
@@ -156,7 +157,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 """.trimIndent(), HashMap(mapOf(1 to taskEntry.id)),
                 null
             )
-            deletePendingChunks(id)
+            pendingChunksTable.clearPendingChunks(id)
 
             if (taskEntry is RunningTaskEntry) {
                 tasks.remove(taskEntry)
@@ -223,7 +224,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     val radius = res.getInt("radius")
                     val shape = res.getString("shape")
                     if (this.tasks.find { it.id == id } == null) {
-                        loadPendingChunks(id) {
+                        pendingChunksTable.getPendingChunks(id).thenAccept {
                             resumeTask(world!!, center, last, id, radius, shape, it)
                         }
                     }
@@ -261,26 +262,6 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         paused = false
         pausedTasks.clear()
         startAll()
-    }
-
-    /**
-     * Loads all pending chunks for a world and invokes the callback with the result
-     */
-    private fun loadPendingChunks(taskId: Int, cb: ((List<ChunkCoordinates>) -> Unit)?) {
-        chunkmaster.sqliteManager.executeStatement("SELECT * FROM paper_pending_chunks WHERE task_id = ?",hashMapOf(1 to taskId)) {
-            val pendingChunks = ArrayList<ChunkCoordinates>()
-            while (it!!.next()) {
-                pendingChunks.add(ChunkCoordinates(it.getInt("chunk_x"), it.getInt("chunk_z")))
-            }
-            cb?.invoke(pendingChunks)
-        }
-    }
-
-    /**
-     * Deletes all pending chunks from the database
-     */
-    private fun deletePendingChunks(taskId: Int) {
-        chunkmaster.sqliteManager.executeStatement("DELETE FROM paper_pending_chunks WHERE task_id = ?", hashMapOf(1 to taskId), null)
     }
 
     /**
@@ -331,19 +312,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             HashMap(mapOf(1 to lastChunk.x, 2 to lastChunk.z, 3 to id))
         ) {
             if (generationTask is GenerationTaskPaper) {
-                this.deletePendingChunks(id)
                 if (generationTask.pendingChunks.size > 0) {
-                    var sql = "INSERT INTO paper_pending_chunks (task_id, chunk_x, chunk_z) VALUES"
-                    var index = 1
-                    val valueMap= HashMap<Int, Any>()
-
-                    for (pending in generationTask.pendingChunks) {
-                        sql += "(?, ?, ?),"
-                        valueMap[index++] = id
-                        valueMap[index++] = pending.coordinates.x
-                        valueMap[index++] = pending.coordinates.z
+                    pendingChunksTable.clearPendingChunks(id).thenAccept {
+                        pendingChunksTable.addPendingChunks(id, generationTask.pendingChunks.map { it.coordinates })
                     }
-                    chunkmaster.sqliteManager.executeStatement(sql.removeSuffix(","), valueMap, null)
                 }
             }
         }

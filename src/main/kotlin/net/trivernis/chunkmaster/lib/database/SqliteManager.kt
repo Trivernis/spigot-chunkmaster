@@ -32,7 +32,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
             )
         ),
         Pair(
-            "paper_pending_chunks",
+            "pending_chunks",
             listOf(
                 Pair("id", "integer PRIMARY KEY AUTOINCREMENT"),
                 Pair("task_id", "integer NOT NULL"),
@@ -47,6 +47,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     private var activeTasks = 0
 
     val worldProperties = WorldProperties(this)
+    val pendingChunks = PendingChunks(this)
 
     /**
      * Returns the connection to the database
