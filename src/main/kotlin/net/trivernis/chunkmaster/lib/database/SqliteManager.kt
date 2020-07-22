@@ -48,6 +48,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
 
     val worldProperties = WorldProperties(this)
     val pendingChunks = PendingChunks(this)
+    val generationTasks = GenerationTasks(this)
 
     /**
      * Returns the connection to the database

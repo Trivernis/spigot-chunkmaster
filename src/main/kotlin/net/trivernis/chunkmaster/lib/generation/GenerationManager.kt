@@ -17,7 +17,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val tasks: HashSet<RunningTaskEntry> = HashSet()
     val pausedTasks: HashSet<PausedTaskEntry> = HashSet()
     val worldProperties = chunkmaster.sqliteManager.worldProperties
-    val pendingChunksTable = chunkmaster.sqliteManager.pendingChunks
+    private val pendingChunksTable = chunkmaster.sqliteManager.pendingChunks
+    private val generationTasks = chunkmaster.sqliteManager.generationTasks
 
     val loadedChunkCount: Int
         get() {
@@ -47,6 +48,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      */
     fun addTask(world: World, radius: Int = -1, shape: String = "square"): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
+
         if (foundTask == null) {
             val center = worldProperties.getWorldCenter(world.name).join()
 
@@ -56,33 +58,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 ChunkCoordinates(center.first, center.second)
             }
             val generationTask = createGenerationTask(world, centerChunk, centerChunk, radius, shape, null)
-
-            chunkmaster.sqliteManager.executeStatement(
-                """
-                INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, radius, shape)
-                values (?, ?, ?, ?, ?, ?, ?)
-                """,
-                HashMap(
-                    mapOf(
-                        1 to centerChunk.x,
-                        2 to centerChunk.z,
-                        3 to centerChunk.x,
-                        4 to centerChunk.z,
-                        5 to world.name,
-                        6 to radius,
-                        7 to shape
-                    )
-                ),
-                null
-            )
-
-            var id = 0
-            chunkmaster.sqliteManager.executeStatement("""
-                SELECT id FROM generation_tasks ORDER BY id DESC LIMIT 1
-                """.trimIndent(), HashMap()) {
-                it!!.next()
-                id = it.getInt("id")
-            }
+            val id = generationTasks.addGenerationTask(world.name, centerChunk, radius, shape).join()
 
             generationTask.onEndReached {
                 chunkmaster.logger.info(chunkmaster.langManager.getLocalized("TASK_FINISHED", id, it.count))
@@ -152,11 +128,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             if (taskEntry.generationTask.isRunning && taskEntry is RunningTaskEntry) {
                 taskEntry.cancel(chunkmaster.config.getLong("mspt-pause-threshold"))
             }
-            chunkmaster.sqliteManager.executeStatement("""
-                DELETE FROM generation_tasks WHERE id = ?;
-                """.trimIndent(), HashMap(mapOf(1 to taskEntry.id)),
-                null
-            )
+            generationTasks.deleteGenerationTask(id)
             pendingChunksTable.clearPendingChunks(id)
 
             if (taskEntry is RunningTaskEntry) {
@@ -212,24 +184,15 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Starts all generation tasks.
      */
     fun startAll() {
-        chunkmaster.sqliteManager.executeStatement("SELECT * FROM generation_tasks", HashMap()) { res ->
-            var count = 0
-            while (res!!.next()) {
-                count++
-                try {
-                    val id = res.getInt("id")
-                    val world = server.getWorld(res.getString("world"))
-                    val center = ChunkCoordinates(res.getInt("center_x"), res.getInt("center_z"))
-                    val last = ChunkCoordinates(res.getInt("last_x"), res.getInt("last_z"))
-                    val radius = res.getInt("radius")
-                    val shape = res.getString("shape")
-                    if (this.tasks.find { it.id == id } == null) {
-                        pendingChunksTable.getPendingChunks(id).thenAccept {
-                            resumeTask(world!!, center, last, id, radius, shape, it)
-                        }
+        generationTasks.getGenerationTasks().thenAccept { tasks ->
+            for (task in tasks) {
+                val world = server.getWorld(task.world)
+                if (world != null) {
+                    pendingChunksTable.getPendingChunks(task.id).thenAccept {
+                        resumeTask(world, task.center, task.last, task.id, task.radius, task.shape, it)
                     }
-                } catch (error: NullPointerException) {
-                    chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", res.getInt("id")))
+                } else {
+                    chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TASK_LOAD_FAILED", task.id))
                 }
             }
         }
@@ -303,14 +266,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
      * Saves the generation progress to the database
      */
     private fun saveProgressToDatabase(generationTask: GenerationTask, id: Int) {
-        val lastChunk = generationTask.lastChunkCoords
-        chunkmaster.sqliteManager.executeStatement(
-            """
-                    UPDATE generation_tasks SET last_x = ?, last_z = ?
-                    WHERE id = ?
-                    """.trimIndent(),
-            HashMap(mapOf(1 to lastChunk.x, 2 to lastChunk.z, 3 to id))
-        ) {
+        generationTasks.updateLastChunk(id, generationTask.lastChunkCoords).thenAccept{
             if (generationTask is GenerationTaskPaper) {
                 if (generationTask.pendingChunks.size > 0) {
                     pendingChunksTable.clearPendingChunks(id).thenAccept {
