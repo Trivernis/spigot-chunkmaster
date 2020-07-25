@@ -79,6 +79,7 @@ class GenerationTaskSpigot(
 
         while (!this.cancelRun && !this.borderReached()) {
             val chunkCoordinates = nextChunkCoordinates
+            triggerDynmapRender(chunkCoordinates)
             if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z)) {
                 missedChunks.add(chunkCoordinates)
             }

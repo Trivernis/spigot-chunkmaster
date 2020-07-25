@@ -37,11 +37,9 @@ class GenerationTaskPaper(
      * After a configured number of chunks chunks have been generated, they will all be unloaded and saved.
      */
     override fun generate() {
-        try {
-            generateMissing()
-            seekGenerated()
-            generateUntilBorder()
-        } catch (_: InterruptedException){}
+        generateMissing()
+        seekGenerated()
+        generateUntilBorder()
     }
 
     /**
@@ -54,6 +52,7 @@ class GenerationTaskPaper(
 
         while (!cancelRun && !borderReached()) {
             val chunkCoordinates = nextChunkCoordinates
+            triggerDynmapRender(chunkCoordinates)
             if (!world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z)) {
                 missedChunks.add(chunkCoordinates)
             }
@@ -72,6 +71,12 @@ class GenerationTaskPaper(
             this.requestGeneration(chunk)
             this.count++
             this.missingChunks.remove(chunk)
+            if (this.cancelRun) {
+                break
+            }
+        }
+        if (!cancelRun) {
+            this.joinPending()
         }
     }
 
@@ -92,6 +97,7 @@ class GenerationTaskPaper(
     private fun generateUntilBorder() {
         this.state = TaskState.GENERATING
         var chunkCoordinates: ChunkCoordinates
+
         while (!cancelRun && !borderReached()) {
             if (plugin.mspt < msptThreshold) {
                 chunkCoordinates = nextChunkCoordinates
@@ -100,6 +106,15 @@ class GenerationTaskPaper(
                 this.lastChunkCoords = chunkCoordinates
                 this.count = shape.count
             }
+        }
+        if (!cancelRun) {
+            joinPending()
+        }
+    }
+
+    private fun joinPending() {
+        while (!this.pendingChunks.isEmpty()) {
+            Thread.sleep(msptThreshold)
         }
     }
 

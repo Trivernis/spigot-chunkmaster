@@ -55,16 +55,22 @@ abstract class GenerationTask(
             when (state) {
                 TaskState.GENERATING -> {
                     this.generate()
-                    plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
-                    this.validate()
-                    plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
-                    this.generateMissing()
+                    if (!cancelRun) {
+                        plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
+                        this.validate()
+                    }
+                    if (!cancelRun) {
+                        plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                        this.generateMissing()
+                    }
                 }
                 TaskState.VALIDATING -> {
                     plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
                     this.validate()
-                    plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
-                    this.generateMissing()
+                    if (!cancelRun) {
+                        plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                        this.generateMissing()
+                    }
                 }
                 TaskState.CORRECTING -> this.generateMissing()
                 else -> { }
@@ -102,6 +108,15 @@ abstract class GenerationTask(
                 markerAreaName,
                 this.shape.getShapeEdgeLocations().map { ChunkCoordinates(it.first, it.second).getCenterLocation(this.world) },
                 markerAreaStyle
+            )
+        }
+    }
+
+    protected fun triggerDynmapRender(chunkCoordinates: ChunkCoordinates) {
+        if (dynmapIntegration) {
+            dynmap?.triggerRenderOfVolume(
+                world.getBlockAt(chunkCoordinates.x * 16, 0, chunkCoordinates.z * 16).location,
+                world.getBlockAt((chunkCoordinates.x * 16) + 16, 255, (chunkCoordinates.z * 16) + 16).location
             )
         }
     }
