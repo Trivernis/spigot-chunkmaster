@@ -1,7 +1,7 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '1.2.1'
-description: Chunk commands plugin.
+version: '1.2.2'
+description: Automated world pregeneration.
 author: Trivernis
 website: trivernis.net
 api-version: '1.14'
