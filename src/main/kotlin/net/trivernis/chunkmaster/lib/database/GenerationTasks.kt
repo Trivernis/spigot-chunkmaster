@@ -97,20 +97,8 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
             "GENERATING" -> TaskState.GENERATING
             "VALIDATING" -> TaskState.VALIDATING
             "PAUSING" -> TaskState.PAUSING
-            "SEEKING" -> TaskState.SEEKING
+            "CORRECTING" -> TaskState.CORRECTING
             else -> TaskState.GENERATING
-        }
-    }
-
-    /**
-     * Converts a task state into a string
-     */
-    private fun stateToString(state: TaskState): String {
-        return when (state) {
-            TaskState.GENERATING -> "GENERATING"
-            TaskState.VALIDATING -> "VALIDATING"
-            TaskState.PAUSING -> "PAUSING"
-            TaskState.SEEKING -> "SEEKING"
         }
     }
 }

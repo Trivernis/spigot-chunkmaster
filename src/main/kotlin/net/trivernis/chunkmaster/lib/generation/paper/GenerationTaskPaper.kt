@@ -16,9 +16,9 @@ class GenerationTaskPaper(
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape,
-    previousPendingChunks: List<ChunkCoordinates>,
+    missingChunks: HashSet<ChunkCoordinates>,
     state: TaskState
-) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks, state) {
+) : GenerationTask(plugin, unloader, startChunk, shape, missingChunks, state) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
     val pendingChunks = ArrayBlockingQueue<PendingChunkEntry>(maxPendingChunks)
@@ -38,25 +38,41 @@ class GenerationTaskPaper(
      */
     override fun generate() {
         try {
-            for (pending in this.previousPendingChunks) {
-                this.requestGeneration(pending)
-            }
-
-            this.state = TaskState.SEEKING
+            generateMissing()
             seekGenerated()
-            this.state = TaskState.GENERATING
             generateUntilBorder()
         } catch (_: InterruptedException){}
     }
 
     /**
      * Validates that all chunks have been generated or generates missing ones
-     * TODO: Just validate and store information about missing chunks.
-     *       Generate missing chunks later
      */
     override fun validate() {
         this.state = TaskState.VALIDATING
-        generateUntilBorder()
+        this.shape.reset()
+        val missedChunks = HashSet<ChunkCoordinates>()
+
+        while (!cancelRun && !borderReached()) {
+            val chunkCoordinates = nextChunkCoordinates
+            if (!world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z)) {
+                missedChunks.add(chunkCoordinates)
+            }
+        }
+        this.missingChunks.addAll(missedChunks)
+    }
+
+    /**
+     * Generates chunks that are missing
+     */
+    override fun generateMissing() {
+        this.state = TaskState.CORRECTING
+        val missing = this.missingChunks.toHashSet()
+        this.count = 0
+        for (chunk in missing) {
+            this.requestGeneration(chunk)
+            this.count++
+            this.missingChunks.remove(chunk)
+        }
     }
 
     /**
@@ -74,8 +90,9 @@ class GenerationTaskPaper(
      * Generates the world until it encounters the worlds border
      */
     private fun generateUntilBorder() {
+        this.state = TaskState.GENERATING
         var chunkCoordinates: ChunkCoordinates
-        while (!cancelRun && !borderReachedCheck()) {
+        while (!cancelRun && !borderReached()) {
             if (plugin.mspt < msptThreshold) {
                 chunkCoordinates = nextChunkCoordinates
                 this.requestGeneration(chunkCoordinates)

@@ -47,6 +47,8 @@ class RunningTaskEntry(
             generationTask.cancel()
             thread.interrupt()
         }
-        thread.join(timeout)
+        try {
+            thread.join(timeout)
+        } catch (e: InterruptedException) {}
     }
 }

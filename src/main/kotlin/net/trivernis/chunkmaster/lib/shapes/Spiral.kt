@@ -86,4 +86,10 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
     private fun getDistances(pos1: Pair<Int, Int>, pos2: Pair<Int, Int>): Pair<Int, Int> {
         return Pair(pos2.first - pos1.first, pos2.second - pos1.second)
     }
+
+    override fun reset() {
+        this.currentPos = center
+        this.count = 0
+        this.direction = 0
+    }
 }

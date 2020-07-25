@@ -1,11 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation
 
 enum class TaskState {
-    SEEKING {
-        override fun toString(): String {
-            return "SEEKING"
-        }
-    },
     GENERATING {
         override fun toString(): String {
             return "GENERATING"
@@ -14,6 +9,11 @@ enum class TaskState {
     VALIDATING {
         override fun toString(): String {
             return "VALIDATING"
+        }
+    },
+    CORRECTING {
+        override fun toString(): String {
+            return "CORRECTING"
         }
     },
     PAUSING {

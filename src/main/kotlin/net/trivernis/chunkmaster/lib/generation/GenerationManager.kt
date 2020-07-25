@@ -11,6 +11,7 @@ import net.trivernis.chunkmaster.lib.shapes.Circle
 import net.trivernis.chunkmaster.lib.shapes.Spiral
 import org.bukkit.Server
 import org.bukkit.World
+import java.util.concurrent.CompletableFuture
 
 class GenerationManager(private val chunkmaster: Chunkmaster, private val server: Server) {
 
@@ -124,19 +125,23 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         } else {
             this.tasks.find { it.id == id }
         }
-        if (taskEntry != null) {
-            if (taskEntry.generationTask.isRunning && taskEntry is RunningTaskEntry) {
-                taskEntry.cancel(chunkmaster.config.getLong("mspt-pause-threshold"))
-            }
-            generationTasks.deleteGenerationTask(id)
-            pendingChunksTable.clearPendingChunks(id)
+        try {
+            if (taskEntry != null) {
+                if (taskEntry.generationTask.isRunning && taskEntry is RunningTaskEntry) {
+                    taskEntry.cancel(chunkmaster.config.getLong("mspt-pause-threshold"))
+                }
+                generationTasks.deleteGenerationTask(id)
+                pendingChunksTable.clearPendingChunks(id)
 
-            if (taskEntry is RunningTaskEntry) {
-                tasks.remove(taskEntry)
-            } else if (taskEntry is PausedTaskEntry) {
-                pausedTasks.remove(taskEntry)
+                if (taskEntry is RunningTaskEntry) {
+                    tasks.remove(taskEntry)
+                } else if (taskEntry is PausedTaskEntry) {
+                    pausedTasks.remove(taskEntry)
+                }
+                return true
             }
-            return true
+        } catch (e: Exception) {
+            chunkmaster.logger.severe(e.toString())
         }
         return false
     }
@@ -167,7 +172,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         for (task in tasks) {
             val id = task.id
             chunkmaster.logger.info(chunkmaster.langManager.getLocalized("SAVING_TASK_PROGRESS", task.id))
-            saveProgressToDatabase(task.generationTask, id)
+            saveProgressToDatabase(task.generationTask, id).join()
             task.cancel(chunkmaster.config.getLong("mspt-pause-threshold"))
             removalSet.add(task)
 
@@ -233,30 +238,12 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun saveProgress() {
         for (task in tasks) {
             try {
-                val genTask = task.generationTask
-                val (speed, chunkSpeed) = task.generationSpeed
-                val percentage = if (genTask.radius > 0) "(${"%.2f".format(genTask.shape.progress() * 100)}%)" else ""
-                val eta = if (genTask.radius > 0 && speed!! > 0) {
-                    val etaSeconds = (genTask.shape.progress())/speed
-                    val hours: Int = (etaSeconds/3600).toInt()
-                    val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
-                    val seconds: Int = (etaSeconds % 60).toInt()
-                    ", ETA: %d:%02d:%02d".format(hours, minutes, seconds)
+                if (task.generationTask.state == TaskState.CORRECTING) {
+                    reportCorrectionProgress(task)
                 } else {
-                    ""
+                    reportGenerationProgress(task)
                 }
-                chunkmaster.logger.info(chunkmaster.langManager.getLocalized(
-                    "TASK_PERIODIC_REPORT",
-                    task.id,
-                    genTask.world.name,
-                    genTask.state.toString(),
-                    genTask.count,
-                    percentage,
-                    eta,
-                    chunkSpeed!!,
-                    genTask.lastChunkCoords.x,
-                    genTask.lastChunkCoords.z))
-                saveProgressToDatabase(genTask, task.id)
+                saveProgressToDatabase(task.generationTask, task.id)
             } catch (error: Exception) {
                 chunkmaster.logger.warning(chunkmaster.langManager.getLocalized("TASK_SAVE_FAILED", error.toString()))
             }
@@ -264,18 +251,66 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     }
 
     /**
+     * Reports the progress for correcting tasks
+     */
+    private fun reportCorrectionProgress(task: RunningTaskEntry) {
+        val genTask = task.generationTask
+        chunkmaster.logger.info(chunkmaster.langManager.getLocalized(
+            "TASK_PERIODIC_REPORT_CORRECTING",
+            task.id,
+            genTask.world.name,
+            genTask.count,
+            "(${(genTask.count/genTask.missingChunks.size) * 100}%)"
+        ))
+    }
+
+    /**
+     * Reports the progress of the chunk generation
+     */
+    private fun reportGenerationProgress(task: RunningTaskEntry) {
+        val genTask = task.generationTask
+        val (speed, chunkSpeed) = task.generationSpeed
+        val percentage = if (genTask.radius > 0) "(${"%.2f".format(genTask.shape.progress() * 100)}%)" else ""
+        val eta = if (genTask.radius > 0 && speed!! > 0) {
+            val etaSeconds = (genTask.shape.progress())/speed
+            val hours: Int = (etaSeconds / 3600).toInt()
+            val minutes: Int = ((etaSeconds % 3600) / 60).toInt()
+            val seconds: Int = (etaSeconds % 60).toInt()
+            ", ETA: %d:%02d:%02d".format(hours, minutes, seconds)
+        } else {
+            ""
+        }
+        chunkmaster.logger.info(chunkmaster.langManager.getLocalized(
+            "TASK_PERIODIC_REPORT",
+            task.id,
+            genTask.world.name,
+            genTask.state.toString(),
+            genTask.count,
+            percentage,
+            eta,
+            chunkSpeed!!,
+            genTask.lastChunkCoords.x,
+            genTask.lastChunkCoords.z))
+    }
+
+    /**
      * Saves the generation progress to the database
      */
-    private fun saveProgressToDatabase(generationTask: GenerationTask, id: Int) {
+    private fun saveProgressToDatabase(generationTask: GenerationTask, id: Int): CompletableFuture<Void> {
+        val completableFuture = CompletableFuture<Void>()
         generationTasks.updateGenerationTask(id, generationTask.lastChunkCoords, generationTask.state).thenAccept{
             if (generationTask is GenerationTaskPaper) {
                 if (generationTask.pendingChunks.size > 0) {
                     pendingChunksTable.clearPendingChunks(id).thenAccept {
-                        pendingChunksTable.addPendingChunks(id, generationTask.pendingChunks.map { it.coordinates })
+                        pendingChunksTable.addPendingChunks(id, generationTask.pendingChunks.map { it.coordinates }).thenAccept {
+                            completableFuture.complete(null)
+                        }
                     }
                 }
             }
+            pendingChunksTable.addPendingChunks(id, generationTask.missingChunks.toList())
         }
+        return completableFuture
     }
 
     /**
@@ -303,8 +338,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 world,
                 start,
                 radius,
-                shape,
-                pendingChunks ?: emptyList(),
+                shape, pendingChunks?.toHashSet() ?: HashSet(),
                 TaskState.GENERATING
             )
         } else {
@@ -315,7 +349,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                 start,
                 radius,
                 shape,
-                pendingChunks ?: emptyList(),
+                pendingChunks?.toHashSet() ?: HashSet(),
                 TaskState.GENERATING
             )
         }

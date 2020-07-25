@@ -10,11 +10,11 @@ import java.util.concurrent.Semaphore
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
-    plugin: Chunkmaster,
+    private val plugin: Chunkmaster,
     protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
     val shape: Shape,
-    protected val previousPendingChunks: List<ChunkCoordinates>,
+    val missingChunks: HashSet<ChunkCoordinates>,
     var state: TaskState
 ) :
     Runnable {
@@ -46,15 +46,33 @@ abstract class GenerationTask(
 
     abstract fun generate()
     abstract fun validate()
+    abstract fun generateMissing()
     abstract fun cancel()
 
     override fun run() {
         isRunning = true
-        when (state) {
-            TaskState.GENERATING -> this.generate()
-            TaskState.VALIDATING -> this.validate()
-            else -> { }
-        }
+        try {
+            when (state) {
+                TaskState.GENERATING -> {
+                    this.generate()
+                    plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
+                    this.validate()
+                    plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                    this.generateMissing()
+                }
+                TaskState.VALIDATING -> {
+                    plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
+                    this.validate()
+                    plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                    this.generateMissing()
+                }
+                TaskState.CORRECTING -> this.generateMissing()
+                else -> { }
+            }
+            if (!cancelRun && this.borderReached()) {
+                this.setEndReached()
+            }
+        } catch (e: InterruptedException){}
         isRunning = false
     }
 
@@ -67,7 +85,7 @@ abstract class GenerationTask(
     /**
      * Checks if the World border or the maximum chunk setting for the task is reached.
      */
-    private fun borderReached(): Boolean {
+    protected fun borderReached(): Boolean {
         return (!world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) && !ignoreWorldborder)
                 || shape.endReached()
     }
@@ -94,19 +112,8 @@ abstract class GenerationTask(
     private fun setEndReached() {
         endReached = true
         count = shape.count
-        endReachedCallback?.invoke(this)
         updateGenerationAreaMarker(true)
-    }
-
-    /**
-     * Performs a check if the border has been reached
-     */
-    protected fun borderReachedCheck(): Boolean {
-        val done = borderReached()
-        if (done) {
-            setEndReached()
-        }
-        return done
+        endReachedCallback?.invoke(this)
     }
 
     /**

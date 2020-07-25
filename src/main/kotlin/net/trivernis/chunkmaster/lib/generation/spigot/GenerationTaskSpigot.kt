@@ -1,5 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation.spigot
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import net.trivernis.chunkmaster.lib.generation.ChunkUnloader
@@ -15,9 +16,9 @@ class GenerationTaskSpigot(
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape,
-    previousPendingChunks: List<ChunkCoordinates>,
+    missingChunks: HashSet<ChunkCoordinates>,
     state: TaskState
-) : GenerationTask(plugin, unloader, startChunk, shape, previousPendingChunks, state) {
+) : GenerationTask(plugin, unloader, startChunk, shape, missingChunks, state) {
 
 
     override var count = 0
@@ -36,12 +37,9 @@ class GenerationTaskSpigot(
     override fun generate() {
         isRunning = true
         try {
-            for (pending in this.previousPendingChunks) {
-                val chunkInstance = world.getChunkAt(pending.x, pending.z)
-                chunkInstance.load(true)
-                unloader.add(chunkInstance)
-            }
-            while (!cancelRun && !borderReachedCheck()) {
+            this.generateMissing()
+            this.state = TaskState.GENERATING
+            while (!cancelRun && !borderReached()) {
                 if (plugin.mspt < msptThreshold) {
                     val chunkCoordinates = nextChunkCoordinates
                     val chunkInstance = world.getChunkAt(chunkCoordinates.x, chunkCoordinates.z)
@@ -57,8 +55,35 @@ class GenerationTaskSpigot(
         isRunning = false
     }
 
+    /**
+     * Generates all chunks that were missed
+     */
+    override fun generateMissing() {
+        this.state = TaskState.CORRECTING
+        for (pending in this.missingChunks) {
+            val chunkInstance = world.getChunkAt(pending.x, pending.z)
+            chunkInstance.load(true)
+            unloader.add(chunkInstance)
+            this.lastChunkCoords = pending
+            this.count = this.missingChunks.indexOf(pending)
+        }
+    }
+
+    /**
+     * Validates if all chunks have been generated correctly
+     */
     override fun validate() {
-        TODO("Not yet implemented")
+        this.state = TaskState.VALIDATING
+        this.shape.reset()
+        val missedChunks = HashSet<ChunkCoordinates>()
+
+        while (!this.cancelRun && !this.borderReached()) {
+            val chunkCoordinates = nextChunkCoordinates
+            if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z)) {
+                missedChunks.add(chunkCoordinates)
+            }
+        }
+        this.missingChunks.addAll(missedChunks)
     }
 
     /**

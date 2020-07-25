@@ -9,7 +9,7 @@ class PendingChunks(private val sqliteManager: SqliteManager) {
      */
     fun getPendingChunks(taskId: Int): CompletableFuture<List<ChunkCoordinates>> {
         val completableFuture = CompletableFuture<List<ChunkCoordinates>>()
-        sqliteManager.executeStatement("SELECT * FROM pending_chunks WHERE task_id = ?",hashMapOf(1 to taskId)) {
+        sqliteManager.executeStatement("SELECT * FROM pending_chunks WHERE task_id = ?", hashMapOf(1 to taskId)) {
             val pendingChunks = ArrayList<ChunkCoordinates>()
             while (it!!.next()) {
                 pendingChunks.add(ChunkCoordinates(it.getInt("chunk_x"), it.getInt("chunk_z")))
@@ -35,18 +35,22 @@ class PendingChunks(private val sqliteManager: SqliteManager) {
      */
     fun addPendingChunks(taskId: Int, pendingChunks: List<ChunkCoordinates>): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
-        var sql = "INSERT INTO pending_chunks (task_id, chunk_x, chunk_z) VALUES"
-        var index = 1
-        val valueMap= HashMap<Int, Any>()
-
-        for (coordinates in pendingChunks) {
-            sql += "(?, ?, ?),"
-            valueMap[index++] = taskId
-            valueMap[index++] = coordinates.x
-            valueMap[index++] = coordinates.z
-        }
-        sqliteManager.executeStatement(sql.removeSuffix(","), valueMap) {
+        if (pendingChunks.isEmpty()) {
             completableFuture.complete(null)
+        } else {
+            var sql = "INSERT INTO pending_chunks (task_id, chunk_x, chunk_z) VALUES"
+            var index = 1
+            val valueMap = HashMap<Int, Any>()
+
+            for (coordinates in pendingChunks) {
+                sql += "(?, ?, ?),"
+                valueMap[index++] = taskId
+                valueMap[index++] = coordinates.x
+                valueMap[index++] = coordinates.z
+            }
+            sqliteManager.executeStatement(sql.removeSuffix(","), valueMap) {
+                completableFuture.complete(null)
+            }
         }
         return completableFuture
     }
