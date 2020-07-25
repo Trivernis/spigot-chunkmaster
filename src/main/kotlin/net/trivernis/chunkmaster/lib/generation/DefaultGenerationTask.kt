@@ -1,15 +1,12 @@
-package net.trivernis.chunkmaster.lib.generation.paper
+package net.trivernis.chunkmaster.lib.generation
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
-import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
-import net.trivernis.chunkmaster.lib.generation.ChunkUnloader
-import net.trivernis.chunkmaster.lib.generation.GenerationTask
-import net.trivernis.chunkmaster.lib.generation.TaskState
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
 import java.util.concurrent.*
 
-class GenerationTaskPaper(
+class DefaultGenerationTask(
     private val plugin: Chunkmaster,
     unloader: ChunkUnloader,
     override val world: World,
@@ -53,7 +50,7 @@ class GenerationTaskPaper(
         while (!cancelRun && !borderReached()) {
             val chunkCoordinates = nextChunkCoordinates
             triggerDynmapRender(chunkCoordinates)
-            if (!world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z)) {
+            if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z)) {
                 missedChunks.add(chunkCoordinates)
             }
         }
@@ -87,7 +84,7 @@ class GenerationTaskPaper(
         var chunkCoordinates: ChunkCoordinates
         do {
             chunkCoordinates = nextChunkCoordinates
-        } while (world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z));
+        } while (PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z));
         lastChunkCoords = chunkCoordinates
     }
 
@@ -122,13 +119,16 @@ class GenerationTaskPaper(
      * Request the generation of a chunk
      */
     private fun requestGeneration(chunkCoordinates: ChunkCoordinates) {
-        if (!world.isChunkGenerated(chunkCoordinates.x, chunkCoordinates.z)) {
-            val pendingChunkEntry = PendingChunkEntry(chunkCoordinates, world.getChunkAtAsync(chunkCoordinates.x, chunkCoordinates.z, true))
+        if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z)) {
+            val pendingChunkEntry = PendingChunkEntry(
+                chunkCoordinates,
+                PaperLib.getChunkAtAsync(world, chunkCoordinates.x, chunkCoordinates.z, true)
+            )
+            this.pendingChunks.put(pendingChunkEntry)
             pendingChunkEntry.chunk.thenAccept {
                 this.unloader.add(it)
                 this.pendingChunks.remove(pendingChunkEntry)
             }
-            this.pendingChunks.put(pendingChunkEntry)
         }
     }
 

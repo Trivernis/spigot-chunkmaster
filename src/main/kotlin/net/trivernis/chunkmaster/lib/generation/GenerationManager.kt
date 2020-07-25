@@ -1,9 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation
 
-import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
-import net.trivernis.chunkmaster.lib.generation.paper.GenerationTaskPaper
-import net.trivernis.chunkmaster.lib.generation.spigot.GenerationTaskSpigot
 import net.trivernis.chunkmaster.lib.generation.taskentry.PausedTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.RunningTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
@@ -308,7 +305,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun saveProgressToDatabase(generationTask: GenerationTask, id: Int): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
         generationTasks.updateGenerationTask(id, generationTask.lastChunkCoords, generationTask.state).thenAccept{
-            if (generationTask is GenerationTaskPaper) {
+            if (generationTask is DefaultGenerationTask) {
                 if (generationTask.pendingChunks.size > 0) {
                     pendingChunksTable.clearPendingChunks(id).thenAccept {
                         pendingChunksTable.addPendingChunks(id, generationTask.pendingChunks.map { it.coordinates })
@@ -340,27 +337,14 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             else -> Spiral(Pair(center.x, center.z), Pair(start.x, start.z), radius)
         }
 
-        return if (PaperLib.isPaper()) {
-            GenerationTaskPaper(
-                chunkmaster,
-                unloader,
-                world,
-                start,
-                radius,
-                shape, pendingChunks?.toHashSet() ?: HashSet(),
-                TaskState.GENERATING
-            )
-        } else {
-            GenerationTaskSpigot(
-                chunkmaster,
-                unloader,
-                world,
-                start,
-                radius,
-                shape,
-                pendingChunks?.toHashSet() ?: HashSet(),
-                TaskState.GENERATING
-            )
-        }
+        return DefaultGenerationTask(
+            chunkmaster,
+            unloader,
+            world,
+            start,
+            radius,
+            shape, pendingChunks?.toHashSet() ?: HashSet(),
+            TaskState.GENERATING
+        )
     }
 }

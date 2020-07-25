@@ -2,7 +2,6 @@ package net.trivernis.chunkmaster.lib.database
 
 import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import net.trivernis.chunkmaster.lib.generation.TaskState
-import net.trivernis.chunkmaster.lib.generation.paper.GenerationTaskPaper
 import java.util.concurrent.CompletableFuture
 
 class GenerationTasks(private val sqliteManager: SqliteManager) {
