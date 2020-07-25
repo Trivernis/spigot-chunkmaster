@@ -129,9 +129,27 @@ The plugin works on spigot and paper servers but is significantly faster on pape
 (because it profits from asynchronous chunk loading an the better implementation of the
 isChunkGenerated method).
 
+## Translation
+
+The **Mandarin** translation is provided by [NPBeta](https://github.com/NPBeta) and
+was confirmed by [ed3d3d](https://twitter.com/ed3d3d).
+The **German** and **English** translation is provided by me.
+You can translate the plugin yourself and start a PR to this repository to add it to the
+provided translation.
+
+1. create an i18n folder in the plugins folder (plugins/Chunkmaster)
+2. copy the [default translations file](https://github.com/Trivernis/spigot-chunkmaster/blob/master/src/main/resources/i18n/DEFAULT.i18n.properties) 
+into the newly created folder and rename it to <language-abbrevation>.i18n.properties
+3. modify the values in the file for your translation (you can use minecraft § formatting sequences)
+4. set the language property in the config file to your language abbrevation
+5. start the plugin
+
+Now you should see your translation being used by the plugin for localized messages.
+
 ## License
 
-This project is licensed under the GPLv3.0 License - see the [LICENSE](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
+This project is licensed under the GPLv3.0 License - see the 
+[LICENSE](https://github.com/Trivernis/spigot-chunkmaster/blob/master/LICENSE) for details.
 
 ## bStats
 
