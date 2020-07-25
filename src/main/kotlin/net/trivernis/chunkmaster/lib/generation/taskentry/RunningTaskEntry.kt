@@ -1,5 +1,6 @@
 package net.trivernis.chunkmaster.lib.generation.taskentry
 
+import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.lib.generation.GenerationTask
 
 class RunningTaskEntry(
@@ -48,7 +49,10 @@ class RunningTaskEntry(
             thread.interrupt()
         }
         try {
-            thread.join(timeout)
+            if (PaperLib.isPaper()) {
+                // Seems to cause problem on spigot because of chunkloading blocking the generation
+                thread.join(timeout)
+            }
         } catch (e: InterruptedException) {}
     }
 }

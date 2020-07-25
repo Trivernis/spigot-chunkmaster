@@ -84,7 +84,7 @@ class DefaultGenerationTask(
         var chunkCoordinates: ChunkCoordinates
         do {
             chunkCoordinates = nextChunkCoordinates
-        } while (PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z));
+        } while (PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z))
         lastChunkCoords = chunkCoordinates
     }
 
@@ -119,7 +119,7 @@ class DefaultGenerationTask(
      * Request the generation of a chunk
      */
     private fun requestGeneration(chunkCoordinates: ChunkCoordinates) {
-        if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z)) {
+        if (!PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z) || PaperLib.isSpigot()) {
             val pendingChunkEntry = PendingChunkEntry(
                 chunkCoordinates,
                 PaperLib.getChunkAtAsync(world, chunkCoordinates.x, chunkCoordinates.z, true)
