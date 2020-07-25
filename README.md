@@ -132,7 +132,11 @@ isChunkGenerated method).
 ## Translation
 
 The **Mandarin** translation is provided by [NPBeta](https://github.com/NPBeta) and
-was confirmed by [ed3d3d](https://twitter.com/ed3d3d).
+was validated by [ed3d3d](https://twitter.com/ed3d3d).
+
+The **French** translation is provided by [Corenb](https://github.com/Corenb) and
+was validated by [Fiwel00](https://github.com/Fiwel00) and [Youssef Habri](https://github.com/youssefhabri).
+
 The **German** and **English** translation is provided by me.
 You can translate the plugin yourself and start a PR to this repository to add it to the
 provided translation.
