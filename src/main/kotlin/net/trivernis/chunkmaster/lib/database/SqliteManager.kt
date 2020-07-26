@@ -1,12 +1,10 @@
-package net.trivernis.chunkmaster.lib
+package net.trivernis.chunkmaster.lib.database
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.apache.commons.lang.exception.ExceptionUtils
-import org.sqlite.SQLiteConnection
 import java.lang.Exception
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class SqliteManager(private val chunkmaster: Chunkmaster) {
@@ -21,7 +19,8 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 Pair("last_z", "integer NOT NULL DEFAULT 0"),
                 Pair("world", "text UNIQUE NOT NULL DEFAULT 'world'"),
                 Pair("radius", "integer DEFAULT -1"),
-                Pair("shape", "text NOT NULL DEFAULT 'square'")
+                Pair("shape", "text NOT NULL DEFAULT 'square'"),
+                Pair("state", "text NOT NULL DEFAULT 'GENERATING'")
             )
         ),
         Pair(
@@ -31,12 +30,25 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 Pair("center_x", "integer NOT NULL DEFAULT 0"),
                 Pair("center_z", "integer NOT NULL DEFAULT 0")
             )
+        ),
+        Pair(
+            "pending_chunks",
+            listOf(
+                Pair("id", "integer PRIMARY KEY AUTOINCREMENT"),
+                Pair("task_id", "integer NOT NULL"),
+                Pair("chunk_x", "integer NOT NULL"),
+                Pair("chunk_z", "integer NOT NULL")
+            )
         )
     )
     private val needUpdate = HashSet<Pair<String, Pair<String, String>>>()
     private val needCreation = HashSet<String>()
     private var connection: Connection? = null
     private var activeTasks = 0
+
+    val worldProperties = WorldProperties(this)
+    val pendingChunks = PendingChunks(this)
+    val generationTasks = GenerationTasks(this)
 
     /**
      * Returns the connection to the database
@@ -92,17 +104,18 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     /**
      * Executes a sql statement on the database.
      */
-    fun executeStatement(sql: String, values: HashMap<Int, Any>, callback: ((ResultSet) -> Unit)?) {
+    fun executeStatement(sql: String, values: HashMap<Int, Any>, callback: ((ResultSet?) -> Unit)?) {
         val connection = getConnection()
         activeTasks++
         if (connection != null) {
             try {
+                //println("'$sql' with values $values")
                 val statement = connection.prepareStatement(sql)
                 for (parameterValue in values) {
                     statement.setObject(parameterValue.key, parameterValue.value)
                 }
                 statement.execute()
-                val res = statement.resultSet
+                val res: ResultSet? = statement.resultSet
                 if (callback != null) {
                     callback(res)
                 }

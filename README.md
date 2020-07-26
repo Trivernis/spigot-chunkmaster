@@ -1,4 +1,4 @@
-# chunkmaster ![](https://abstruse.trivernis.net/badge/1) ![](https://img.shields.io/discord/729250668162056313)
+# chunkmaster [![](https://circleci.com/gh/Trivernis/spigot-chunkmaster.svg?style=shield)](https://app.circleci.com/pipelines/github/Trivernis/spigot-chunkmaster) [![CodeFactor](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster/badge)](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster) [![](https://img.shields.io/discord/729250668162056313)](https://discord.gg/KZcMAgN)
 
 This plugin can be used to pre-generate the region of a world around the spawn chunk(s).
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
@@ -82,38 +82,29 @@ generation:
   # The maximum amount of chunks that are loaded before unloading and saving them.
   # Higher values mean higher generation speed but greater memory usage.
   # The value should be a positive integer.
-  max-loaded-chunks: 10
+  max-loaded-chunks: 1000
 
   # Paper Only
   # The maximum amount of requested chunks with the asynchronous paper chunk
-  # loading method. Higher values mean faster generation but more memory usage
-  # (and probably bigger performance impact).
+  # loading method. Higher values mean faster generation but more memory usage and
+  # bigger performance impact. Configuring it too hight might crash the server.
   # The value should be a positive integer.
-  max-pending-chunks: 10
-
-  # The period (in ticks) in which a generation step is run.
-  # Higher values mean less performance impact but slower generation.
-  # The value should be a positive integer.
-  period: 2
-
-  # The max amount of chunks that should be generated per step.
-  # Higher values mean higher generation speed but higher performance impact.
-  # The value should be a positive integer.
-  chunks-per-step: 4
-
-  # Paper Only
-  # The number of already generated chunks that will be skipped for each step.
-  # Notice that these still have a performance impact because the server needs to check
-  # if the chunk is generated.
-  # Higher values mean faster generation but greater performance impact.
-  # The value should be a positive integer.
-  chunk-skips-per-step: 100
+  max-pending-chunks: 500
 
   # The maximum milliseconds per tick the server is allowed to have
   # during the cunk generation process.
   # If the mspt is greather than this, the chunk generation task pauses.
-  # The value should be a positive integer greater than 50.  
+  # The value should be a positive integer greater than 50. 
   mspt-pause-threshold: 500
+
+  # The period in ticks for how often loaded chunks get unloaded.
+  # Unloading happens in the main thread and can impact the server performance.
+  # You can tweak this setting with the max-loaded-chunks setting to have either
+  # a lot of chunks unloaded at once or fewer chunks unloaded more often.
+  # If the maximum number of loaded chunks is reached the generation pauses until the
+  # unloading task runs again so keep that in mind.
+  # The value should be a positive integer.
+  unloading-period: 50
 
   # Pauses the generation if the number of players on the server is larger or equal
   # to the configured value
@@ -121,6 +112,10 @@ generation:
   # very laggy and can cause it to crash.
   # The value should be a posivitve integer > 1.
   pause-on-player-count: 1
+
+  # if the generation should automatically start on server startup
+  # the value should be a boolean
+  autostart: true
 ```
 
 ### Spigot and Paper

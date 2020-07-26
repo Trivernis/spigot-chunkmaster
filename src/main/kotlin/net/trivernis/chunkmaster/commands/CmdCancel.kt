@@ -1,10 +1,7 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
-import net.trivernis.chunkmaster.lib.generation.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
@@ -39,7 +36,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
             }
 
             if (index != null && chunkmaster.generationManager.removeTask(index)) {
-                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELED", index))
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELLED", index))
                 true
             } else {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_NOT_FOUND", args[0]))

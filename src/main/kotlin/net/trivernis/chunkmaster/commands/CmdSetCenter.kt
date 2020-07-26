@@ -67,7 +67,7 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
                 centerZ = args[2].toInt()
             }
         }
-        chunkmaster.generationManager.updateWorldCenter(world, Pair(centerX, centerZ))
+        chunkmaster.generationManager.worldProperties.setWorldCenter(world, Pair(centerX, centerZ))
         sender.sendMessage(chunkmaster.langManager.getLocalized("CENTER_UPDATED", world, centerX, centerZ))
         return true
     }

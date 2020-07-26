@@ -2,9 +2,10 @@ package net.trivernis.chunkmaster.commands
 
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
-import net.trivernis.chunkmaster.lib.generation.TaskEntry
+import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
+import kotlin.math.ceil
 
 class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
     override val name = "list"
@@ -52,7 +53,12 @@ class CmdList(private val chunkmaster: Chunkmaster): Subcommand {
             " (%.1f".format(genTask.shape.progress()*100) + "%)."
         else
             ""
+        val count = if (genTask.radius > 0) {
+            "${genTask.count} / ${ceil(genTask.shape.total()).toInt()}"
+        } else {
+            genTask.count.toString()
+        }
         return "\n" + chunkmaster.langManager.getLocalized("TASKS_ENTRY",
-            task.id, genTask.world.name, genTask.count, percentage)
+            task.id, genTask.world.name, genTask.state.toString(), count, percentage)
     }
 }
