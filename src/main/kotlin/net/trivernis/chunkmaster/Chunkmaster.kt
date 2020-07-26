@@ -80,6 +80,7 @@ class Chunkmaster: JavaPlugin() {
         config.addDefault("generation.max-loaded-chunks", 1000)
         config.addDefault("generation.unloading-period", 50L)
         config.addDefault("generation.ignore-worldborder", false)
+        config.addDefault("generation.autostart", true)
         config.addDefault("database.filename", "chunkmaster.db")
         config.addDefault("language", "en")
         config.addDefault("dynmap", true)

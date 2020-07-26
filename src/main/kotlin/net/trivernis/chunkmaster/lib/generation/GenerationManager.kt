@@ -17,7 +17,18 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val worldProperties = chunkmaster.sqliteManager.worldProperties
     private val pendingChunksTable = chunkmaster.sqliteManager.pendingChunks
     private val generationTasks = chunkmaster.sqliteManager.generationTasks
-    private val unloadingPeriod = chunkmaster.config.getLong("generation.unloading-period")
+    private val unloadingPeriod: Long
+        get() {
+            return chunkmaster.config.getLong("generation.unloading-period")
+        }
+    private val pauseOnPlayerCount: Int
+        get () {
+            return chunkmaster.config.getInt("generation.pause-on-player-count")
+        }
+    private val autostart: Boolean
+        get () {
+            return chunkmaster.config.getBoolean("generation.autostart")
+        }
 
     val loadedChunkCount: Int
         get() {
@@ -30,7 +41,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         get() {
             if (this.tasks.isEmpty() && this.pausedTasks.isEmpty()) {
                 this.startAll()
-                if (server.onlinePlayers.size >= chunkmaster.config.getInt("generation.pause-on-player-count")) {
+                if (server.onlinePlayers.size >= pauseOnPlayerCount) {
                     this.pauseAll()
                 }
             }
@@ -155,7 +166,10 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         }, 600, 600)
         server.scheduler.runTaskLater(chunkmaster, Runnable {
             this.startAll()
-            if (!server.onlinePlayers.isEmpty()) {
+            if (server.onlinePlayers.count() >= pauseOnPlayerCount || !autostart) {
+                if (!autostart) {
+                    chunkmaster.logger.info(chunkmaster.langManager.getLocalized("NO_AUTOSTART"))
+                }
                 this.pauseAll()
             }
         }, 20)
