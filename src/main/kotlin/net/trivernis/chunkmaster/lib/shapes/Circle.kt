@@ -52,7 +52,7 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
         }
         if (count == 0 && currentPos != center) {
             val tmpCircle = Circle(center, center, radius)
-            while (tmpCircle.next() != currentPos);
+            while (tmpCircle.next() != currentPos && !tmpCircle.endReached());
             this.count = tmpCircle.count
             this.r = tmpCircle.r
         }

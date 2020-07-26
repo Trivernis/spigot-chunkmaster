@@ -85,7 +85,8 @@ class DefaultGenerationTask(
         do {
             lastChunkCoords = nextChunkCoordinates
             count = shape.count
-        } while (PaperLib.isChunkGenerated(world, lastChunkCoords.x, lastChunkCoords.z))
+            println(count)
+        } while (PaperLib.isChunkGenerated(world, lastChunkCoords.x, lastChunkCoords.z) && !borderReached())
     }
 
     /**
