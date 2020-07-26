@@ -39,7 +39,7 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         if (count == 0 && currentPos != center) {
             // simulate the spiral to get the correct direction and count
             val simSpiral = Spiral(center, center, radius)
-            while (simSpiral.next() != currentPos);
+            while (simSpiral.next() != currentPos && !simSpiral.endReached());
             direction = simSpiral.direction
             count = simSpiral.count
         }
