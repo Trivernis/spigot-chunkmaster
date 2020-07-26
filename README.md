@@ -1,4 +1,4 @@
-# chunkmaster ![](https://circleci.com/gh/Trivernis/spigot-chunkmaster.svg?style=shield) ![](https://img.shields.io/discord/729250668162056313)
+# chunkmaster [![](https://circleci.com/gh/Trivernis/spigot-chunkmaster.svg?style=shield)](https://app.circleci.com/pipelines/github/Trivernis/spigot-chunkmaster) [![CodeFactor](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster/badge)](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster) [![](https://img.shields.io/discord/729250668162056313)](https://discord.gg/KZcMAgN)
 
 This plugin can be used to pre-generate the region of a world around the spawn chunk(s).
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
