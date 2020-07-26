@@ -3,37 +3,33 @@ package net.trivernis.chunkmaster.lib.generation
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
-import org.bukkit.Chunk
 import org.bukkit.World
-import java.lang.Exception
+import java.util.concurrent.Semaphore
+import kotlin.math.ceil
 
 /**
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
     private val plugin: Chunkmaster,
+    val world: World,
+    protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
-    val shape: Shape
+    val shape: Shape,
+    val missingChunks: HashSet<ChunkCoordinates>,
+    var state: TaskState
 ) :
     Runnable {
 
     abstract val radius: Int
-    abstract val world: World
     abstract var count: Int
     abstract var endReached: Boolean
+    var isRunning: Boolean = false
 
-    val loadedChunksCount: Int
-        get() {
-            return loadedChunks.size
-        }
-
-    protected val loadedChunks: HashSet<Chunk> = HashSet()
     var lastChunkCoords = ChunkCoordinates(startChunk.x, startChunk.z)
         protected set
-    protected val chunkSkips = plugin.config.getInt("generation.chunk-skips-per-step")
     protected val msptThreshold = plugin.config.getLong("generation.mspt-pause-threshold")
-    protected val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
-    protected val chunksPerStep = plugin.config.getInt("generation.chunks-per-step")
+    protected var cancelRun: Boolean = false
 
     private var endReachedCallback: ((GenerationTask) -> Unit)? = null
 
@@ -45,15 +41,48 @@ abstract class GenerationTask(
         null
     }
     private val markerAreaStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0022FF), FillStyle(.0, 0))
-    private val markerAreaId = "chunkmaster_genarea"
-    private val markerAreaName = "Chunkmaster Generation Area"
-    private val markerLastStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0077FF), FillStyle(.5, 0x0077FF))
-    private val markerLastId = "chunkmaster_lastchunk"
-    private val markerLastName = "Chunkmaster Last Chunk"
+    private val markerAreaId = "chunkmaster_genarea_${world.name}"
+    private val markerAreaName = "Chunkmaster Generation Area (${ceil(shape.total()).toInt()} chunks)"
     private val ignoreWorldborder = plugin.config.getBoolean("generation.ignore-worldborder")
 
-    abstract override fun run()
+    abstract fun generate()
+    abstract fun validate()
+    abstract fun generateMissing()
     abstract fun cancel()
+
+    override fun run() {
+        isRunning = true
+        try {
+            when (state) {
+                TaskState.GENERATING -> {
+                    this.generate()
+                    if (!cancelRun) {
+                        this.state = TaskState.VALIDATING
+                        this.validate()
+                    }
+                    if (!cancelRun) {
+                        this.state = TaskState.CORRECTING
+                        this.generateMissing()
+                    }
+                }
+                TaskState.VALIDATING -> {
+                    this.validate()
+                    if (!cancelRun) {
+                        this.state = TaskState.CORRECTING
+                        this.generateMissing()
+                    }
+                }
+                TaskState.CORRECTING -> {
+                    this.generateMissing()
+                }
+                else -> { }
+            }
+            if (!cancelRun && this.borderReached()) {
+                this.setEndReached()
+            }
+        } catch (e: InterruptedException){}
+        isRunning = false
+    }
 
     val nextChunkCoordinates: ChunkCoordinates
         get() {
@@ -67,26 +96,6 @@ abstract class GenerationTask(
     protected fun borderReached(): Boolean {
         return (!world.worldBorder.isInside(lastChunkCoords.getCenterLocation(world)) && !ignoreWorldborder)
                 || shape.endReached()
-    }
-
-    /**
-     * Unloads all chunks that have been loaded
-     */
-    protected fun unloadLoadedChunks() {
-        for (chunk in loadedChunks) {
-            if (chunk.isLoaded) {
-                try {
-                    chunk.unload(true)
-                } catch (e: Exception) {
-                    plugin.logger.severe(e.toString())
-                }
-            }
-            if (dynmapIntegration) {
-                dynmap?.triggerRenderOfVolume(chunk.getBlock(0, 0, 0).location, chunk.getBlock(15, 255, 15).location)
-            }
-        }
-
-        loadedChunks.clear()
     }
 
     /**
@@ -105,19 +114,11 @@ abstract class GenerationTask(
         }
     }
 
-    /**
-     * Updates the dynmap marker for the generation radius
-     */
-    fun updateLastChunkMarker(clear: Boolean = false) {
-        if (clear) {
-            markerSet?.deleteAreaMarker(markerLastId)
-        } else if (dynmapIntegration) {
-            markerSet?.creUpdateAreMarker(
-                markerLastId,
-                markerLastName,
-                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(0, 0, 0).location,
-                this.lastChunkCoords.getCenterLocation(world).chunk.getBlock(15, 0, 15).location,
-                markerLastStyle
+    protected fun triggerDynmapRender(chunkCoordinates: ChunkCoordinates) {
+        if (dynmapIntegration) {
+            dynmap?.triggerRenderOfVolume(
+                world.getBlockAt(chunkCoordinates.x * 16, 0, chunkCoordinates.z * 16).location,
+                world.getBlockAt((chunkCoordinates.x * 16) + 16, 255, (chunkCoordinates.z * 16) + 16).location
             )
         }
     }
@@ -128,21 +129,8 @@ abstract class GenerationTask(
     private fun setEndReached() {
         endReached = true
         count = shape.count
-        endReachedCallback?.invoke(this)
         updateGenerationAreaMarker(true)
-        updateLastChunkMarker(true)
-    }
-
-    /**
-     * Performs a check if the border has been reached
-     */
-    protected fun borderReachedCheck(): Boolean {
-        val done = borderReached()
-        if (done) {
-            unloadLoadedChunks()
-            setEndReached()
-        }
-        return done
+        endReachedCallback?.invoke(this)
     }
 
     /**

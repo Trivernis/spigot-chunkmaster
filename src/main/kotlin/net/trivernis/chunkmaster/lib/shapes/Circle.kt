@@ -10,7 +10,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.system.exitProcess
 
-class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(center, start, radius) {
+class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape(center, start, radius) {
     private var r = 0
     private var coords = Stack<Pair<Int, Int>>()
     private var previousCoords = HashSet<Pair<Int, Int>>()
@@ -20,9 +20,13 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         return radius > 0 && coords.isEmpty() && r >= radius
     }
 
+    override fun total(): Double {
+       return (PI * radius.toFloat().pow(2))
+    }
+
     override fun progress(): Double {
         // TODO: Radius inner progress
-        return (count/(PI* radius.toFloat().pow(2))).coerceAtMost(100.0)
+        return (count / (PI * radius.toFloat().pow(2))).coerceAtMost(1.0)
     }
 
     override fun currentRadius(): Int {
@@ -36,7 +40,7 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
     override fun getShapeEdgeLocations(): List<Pair<Int, Int>> {
         val locations = this.getCircleCoordinates(this.radius)
         locations.add(locations.first())
-        return locations.map{ Pair(it.first + center.first, it.second + center.second) }
+        return locations.map { Pair(it.first + center.first, it.second + center.second) }
     }
 
     /**
@@ -59,7 +63,7 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         if (coords.isEmpty()) {
             r++
             val tmpCoords = HashSet<Pair<Int, Int>>()
-            tmpCoords.addAll(getCircleCoordinates((r*2)-1).map { Pair(it.first / 2, it.second / 2) })
+            tmpCoords.addAll(getCircleCoordinates((r * 2) - 1).map { Pair(it.first / 2, it.second / 2) })
             tmpCoords.addAll(getCircleCoordinates(r))
             tmpCoords.removeAll(previousCoords)
             previousCoords.clear()
@@ -77,16 +81,18 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
      * Some coordinates might already be present in the list
      * @param r - the radius
      */
-    private fun getCircleCoordinates(r: Int): ArrayList<Pair<Int, Int>> {
-        val coords = ArrayList<Pair<Int, Int>>()
+    private fun getCircleCoordinates(r: Int): Vector<Pair<Int, Int>> {
+        val coords = Vector<Pair<Int, Int>>()
         val segCoords = getSegment(r)
         coords.addAll(segCoords.reversed())
+
         for (step in 1..7) {
-            val tmpSeg = ArrayList<Pair<Int, Int>>()
+            val tmpSeg = Vector<Pair<Int, Int>>()
+
             for (pos in segCoords) {
                 val coord = when (step) {
                     1 -> Pair(pos.first, -pos.second)
-                    2 ->Pair(pos.second, -pos.first)
+                    2 -> Pair(pos.second, -pos.first)
                     3 -> Pair(-pos.second, -pos.first)
                     4 -> Pair(-pos.first, -pos.second)
                     5 -> Pair(-pos.first, pos.second)
@@ -127,5 +133,12 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
             }
         }
         return coords
+    }
+
+    override fun reset() {
+        this.r = 0
+        this.currentPos = center
+        this.previousCoords.clear()
+        this.count = 0
     }
 }

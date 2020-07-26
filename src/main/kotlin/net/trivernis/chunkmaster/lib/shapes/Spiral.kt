@@ -10,11 +10,18 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
 
     override fun endReached(): Boolean {
         val distances = getDistances(center, currentPos)
-        return radius > 0 && (distances.first > radius || distances.second > radius)
+        return radius > 0 && ((direction == 3
+                && abs(distances.first) == abs(distances.second)
+                && abs(distances.first) == radius)
+                || (distances.first > radius || distances.second > radius))
+    }
+
+    override fun total(): Double {
+        return (radius * 2).toDouble().pow(2)
     }
 
     override fun progress(): Double {
-        return (count / (radius * 2).toDouble().pow(2)).coerceAtMost(100.0)
+        return (count / (radius * 2).toDouble().pow(2)).coerceAtMost(1.0)
     }
 
     override fun currentRadius(): Int {
@@ -26,6 +33,9 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
      * Returns the next value in the spiral
      */
     override fun next(): Pair<Int, Int> {
+        if (endReached()) {
+            return currentPos
+        }
         if (count == 0 && currentPos != center) {
             // simulate the spiral to get the correct direction and count
             val simSpiral = Spiral(center, center, radius)
@@ -85,5 +95,14 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
      */
     private fun getDistances(pos1: Pair<Int, Int>, pos2: Pair<Int, Int>): Pair<Int, Int> {
         return Pair(pos2.first - pos1.first, pos2.second - pos1.second)
+    }
+
+    /**
+     * Resets the shape to its starting parameters
+     */
+    override fun reset() {
+        this.currentPos = center
+        this.count = 0
+        this.direction = 0
     }
 }

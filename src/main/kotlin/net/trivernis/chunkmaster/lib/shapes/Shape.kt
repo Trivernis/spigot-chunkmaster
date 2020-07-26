@@ -26,6 +26,11 @@ abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>
     abstract fun progress(): Double
 
     /**
+     * The total number of chunks to generate
+     */
+    abstract fun total(): Double
+
+    /**
      * Returns the current radius
      */
     abstract fun currentRadius(): Int
@@ -34,4 +39,9 @@ abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>
      * returns a poly marker for the shape
      */
     abstract fun getShapeEdgeLocations(): List<Pair<Int, Int>>
+
+    /**
+     * Resets the shape to its center start position
+     */
+    abstract fun reset()
 }

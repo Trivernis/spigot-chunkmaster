@@ -37,12 +37,6 @@ class CmdGetCenter(private val chunkmaster: Chunkmaster): Subcommand {
                 args[0]
             }
         }
-        if (chunkmaster.generationManager.worldCenters.isEmpty()) {
-            chunkmaster.generationManager.loadWorldCenters() {
-                sendCenterInfo(sender, worldName)
-            }
-            return true
-        }
         sendCenterInfo(sender, worldName)
         return true
     }
@@ -51,15 +45,17 @@ class CmdGetCenter(private val chunkmaster: Chunkmaster): Subcommand {
      * Sends the center information
      */
     private fun sendCenterInfo(sender: CommandSender, worldName: String) {
-        var center = chunkmaster.generationManager.worldCenters[worldName]
-        if (center == null) {
-            val world = sender.server.worlds.find { it.name == worldName }
-            if (world == null) {
-                sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName))
-                return
+        chunkmaster.generationManager.worldProperties.getWorldCenter(worldName).thenAccept { worldCenter ->
+            var center = worldCenter
+            if (center == null) {
+                val world = sender.server.worlds.find { it.name == worldName }
+                if (world == null) {
+                    sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName))
+                    return@thenAccept
+                }
+                center = Pair(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
             }
-            center = Pair(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
+            sender.sendMessage(chunkmaster.langManager.getLocalized("CENTER_INFO", worldName, center.first, center.second))
         }
-        sender.sendMessage(chunkmaster.langManager.getLocalized("CENTER_INFO", worldName, center.first, center.second))
     }
 }

@@ -41,10 +41,6 @@ class CmdStats(private val chunkmaster: Chunkmaster): Subcommand {
             ${chunkmaster.langManager.getLocalized("STATS_ENTITY_COUNT", world.entities.size)}
             ${chunkmaster.langManager.getLocalized("STATS_LOADED_CHUNKS", world.loadedChunks.size)}
         """.trimIndent()
-        val task = chunkmaster.generationManager.tasks.find { it.generationTask.world == world }
-        if (task != null) {
-            message += "\n" + chunkmaster.langManager.getLocalized("STATS_PLUGIN_LOADED_CHUNKS", task.generationTask.loadedChunksCount)
-        }
         return message
     }
 
@@ -59,6 +55,8 @@ class CmdStats(private val chunkmaster: Chunkmaster): Subcommand {
             ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_VERSION", chunkmaster.description.version)}
             ${chunkmaster.langManager.getLocalized("STATS_MEMORY", memUsed/1000000, runtime.maxMemory()/1000000, (memUsed.toFloat()/runtime.maxMemory().toFloat()) * 100)}
             ${chunkmaster.langManager.getLocalized("STATS_CORES", runtime.availableProcessors())}
+            
+            ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_LOADED_CHUNKS", chunkmaster.generationManager.loadedChunkCount)}
         """.trimIndent()
         for (world in sender.server.worlds) {
             message += "\n\n" + getWorldStatsMessage(sender, world)
