@@ -4,7 +4,7 @@ import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
-import java.util.concurrent.*
+import java.util.concurrent.ArrayBlockingQueue
 
 class DefaultGenerationTask(
     private val plugin: Chunkmaster,

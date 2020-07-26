@@ -6,7 +6,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdGetCenter(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdGetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "getCenter";
 
     override fun onTabComplete(
@@ -17,7 +17,7 @@ class CmdGetCenter(private val chunkmaster: Chunkmaster): Subcommand {
     ): MutableList<String> {
         if (args.size == 1) {
             return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
-                .map {it.name}.toMutableList()
+                .map { it.name }.toMutableList()
         }
         return emptyList<String>().toMutableList()
     }
@@ -55,7 +55,14 @@ class CmdGetCenter(private val chunkmaster: Chunkmaster): Subcommand {
                 }
                 center = Pair(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
             }
-            sender.sendMessage(chunkmaster.langManager.getLocalized("CENTER_INFO", worldName, center.first, center.second))
+            sender.sendMessage(
+                chunkmaster.langManager.getLocalized(
+                    "CENTER_INFO",
+                    worldName,
+                    center.first,
+                    center.second
+                )
+            )
         }
     }
 }

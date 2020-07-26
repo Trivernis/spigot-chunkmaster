@@ -6,7 +6,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdSetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "setCenter";
 
     override fun onTabComplete(
@@ -18,7 +18,7 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
         if (args.size == 1) {
             if (args[0].toIntOrNull() == null) {
                 return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
-                    .map {it.name}.toMutableList()
+                    .map { it.name }.toMutableList()
             }
         }
         return emptyList<String>().toMutableList();
