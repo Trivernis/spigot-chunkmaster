@@ -112,6 +112,10 @@ generation:
   # very laggy and can cause it to crash.
   # The value should be a posivitve integer > 1.
   pause-on-player-count: 1
+
+  # if the generation should automatically start on server startup
+  # the value should be a boolean
+  autostart: true
 ```
 
 ### Spigot and Paper
