@@ -4,13 +4,17 @@ import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.Chunk
 import java.lang.Exception
 import java.util.*
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.ConcurrentLinkedDeque
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.*
 import kotlin.collections.HashSet
 
 class ChunkUnloader(private val plugin: Chunkmaster): Runnable {
-    private var unloadingQueue = ArrayBlockingQueue<Chunk>(plugin.config.getInt("generation.max-loaded-chunks"))
+    private val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
+    private var unloadingQueue = Vector<Chunk>(maxLoadedChunks)
+    val isFull: Boolean
+    get() {
+        return unloadingQueue.size == maxLoadedChunks
+    }
+
     val pendingSize: Int
         get() {
             return unloadingQueue.size
@@ -20,8 +24,9 @@ class ChunkUnloader(private val plugin: Chunkmaster): Runnable {
      * Unloads all chunks in the unloading queue with each run
      */
     override fun run() {
-        val chunkToUnload = HashSet<Chunk>()
-        unloadingQueue.drainTo(chunkToUnload)
+        val chunkToUnload = unloadingQueue.toHashSet()
+        unloadingQueue.clear()
+
         for (chunk in chunkToUnload) {
             try {
                 chunk.unload(true)
@@ -29,12 +34,13 @@ class ChunkUnloader(private val plugin: Chunkmaster): Runnable {
                 plugin.logger.severe(e.toString())
             }
         }
+        unloadingQueue.clear()
     }
 
     /**
      * Adds a chunk to unload to the queue
      */
     fun add(chunk: Chunk) {
-        unloadingQueue.put(chunk)
+        unloadingQueue.add(chunk)
     }
 }

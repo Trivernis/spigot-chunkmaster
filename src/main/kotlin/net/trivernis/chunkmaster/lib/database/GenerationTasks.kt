@@ -80,7 +80,7 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
             UPDATE generation_tasks SET last_x = ?, last_z = ?, state = ?
             WHERE id = ?
             """.trimIndent(),
-            hashMapOf(1 to last.x, 2 to last.z, 3 to id, 4 to state.toString())
+            hashMapOf(1 to last.x, 2 to last.z, 3 to state.toString(), 4 to id)
         ) {
             completableFuture.complete(null)
         }

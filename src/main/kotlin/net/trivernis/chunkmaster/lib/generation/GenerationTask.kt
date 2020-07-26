@@ -5,12 +5,14 @@ import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
 import java.util.concurrent.Semaphore
+import kotlin.math.ceil
 
 /**
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
     private val plugin: Chunkmaster,
+    val world: World,
     protected val unloader: ChunkUnloader,
     startChunk: ChunkCoordinates,
     val shape: Shape,
@@ -20,7 +22,6 @@ abstract class GenerationTask(
     Runnable {
 
     abstract val radius: Int
-    abstract val world: World
     abstract var count: Int
     abstract var endReached: Boolean
     var isRunning: Boolean = false
@@ -40,8 +41,8 @@ abstract class GenerationTask(
         null
     }
     private val markerAreaStyle = MarkerStyle(null, LineStyle(2, 1.0, 0x0022FF), FillStyle(.0, 0))
-    private val markerAreaId = "chunkmaster_genarea"
-    private val markerAreaName = "Chunkmaster Generation Area"
+    private val markerAreaId = "chunkmaster_genarea_${world.name}"
+    private val markerAreaName = "Chunkmaster Generation Area (${ceil(shape.total()).toInt()} chunks)"
     private val ignoreWorldborder = plugin.config.getBoolean("generation.ignore-worldborder")
 
     abstract fun generate()
@@ -56,23 +57,24 @@ abstract class GenerationTask(
                 TaskState.GENERATING -> {
                     this.generate()
                     if (!cancelRun) {
-                        plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
+                        this.state = TaskState.VALIDATING
                         this.validate()
                     }
                     if (!cancelRun) {
-                        plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                        this.state = TaskState.CORRECTING
                         this.generateMissing()
                     }
                 }
                 TaskState.VALIDATING -> {
-                    plugin.logger.info(plugin.langManager.getLocalized("TASK_VALIDATE_STATE"))
                     this.validate()
                     if (!cancelRun) {
-                        plugin.logger.info(plugin.langManager.getLocalized("TASK_CORRECT_STATE", this.missingChunks.size))
+                        this.state = TaskState.CORRECTING
                         this.generateMissing()
                     }
                 }
-                TaskState.CORRECTING -> this.generateMissing()
+                TaskState.CORRECTING -> {
+                    this.generateMissing()
+                }
                 else -> { }
             }
             if (!cancelRun && this.borderReached()) {

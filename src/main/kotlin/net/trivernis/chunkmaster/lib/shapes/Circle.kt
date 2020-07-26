@@ -81,12 +81,14 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
      * Some coordinates might already be present in the list
      * @param r - the radius
      */
-    private fun getCircleCoordinates(r: Int): ArrayList<Pair<Int, Int>> {
-        val coords = ArrayList<Pair<Int, Int>>()
+    private fun getCircleCoordinates(r: Int): Vector<Pair<Int, Int>> {
+        val coords = Vector<Pair<Int, Int>>()
         val segCoords = getSegment(r)
         coords.addAll(segCoords.reversed())
+
         for (step in 1..7) {
-            val tmpSeg = ArrayList<Pair<Int, Int>>()
+            val tmpSeg = Vector<Pair<Int, Int>>()
+
             for (pos in segCoords) {
                 val coord = when (step) {
                     1 -> Pair(pos.first, -pos.second)

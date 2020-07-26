@@ -97,6 +97,9 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
         return Pair(pos2.first - pos1.first, pos2.second - pos1.second)
     }
 
+    /**
+     * Resets the shape to its starting parameters
+     */
     override fun reset() {
         this.currentPos = center
         this.count = 0

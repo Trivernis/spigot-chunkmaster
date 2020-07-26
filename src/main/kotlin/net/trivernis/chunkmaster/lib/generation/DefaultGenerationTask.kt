@@ -9,13 +9,13 @@ import java.util.concurrent.*
 class DefaultGenerationTask(
     private val plugin: Chunkmaster,
     unloader: ChunkUnloader,
-    override val world: World,
+    world: World,
     startChunk: ChunkCoordinates,
     override val radius: Int = -1,
     shape: Shape,
     missingChunks: HashSet<ChunkCoordinates>,
     state: TaskState
-) : GenerationTask(plugin, unloader, startChunk, shape, missingChunks, state) {
+) : GenerationTask(plugin, world, unloader, startChunk, shape, missingChunks, state) {
 
     private val maxPendingChunks = plugin.config.getInt("generation.max-pending-chunks")
     val pendingChunks = ArrayBlockingQueue<PendingChunkEntry>(maxPendingChunks)
@@ -43,7 +43,6 @@ class DefaultGenerationTask(
      * Validates that all chunks have been generated or generates missing ones
      */
     override fun validate() {
-        this.state = TaskState.VALIDATING
         this.shape.reset()
         val missedChunks = HashSet<ChunkCoordinates>()
 
@@ -61,15 +60,17 @@ class DefaultGenerationTask(
      * Generates chunks that are missing
      */
     override fun generateMissing() {
-        this.state = TaskState.CORRECTING
         val missing = this.missingChunks.toHashSet()
         this.count = 0
-        for (chunk in missing) {
-            this.requestGeneration(chunk)
-            this.count++
-            this.missingChunks.remove(chunk)
-            if (this.cancelRun) {
-                break
+
+        while (missing.size > 0 && !cancelRun) {
+            if (plugin.mspt < msptThreshold && !unloader.isFull) {
+                val chunk = missing.first()
+                missing.remove(chunk)
+                this.requestGeneration(chunk)
+                this.count++
+            } else {
+                Thread.sleep(50L)
             }
         }
         if (!cancelRun) {
@@ -81,27 +82,27 @@ class DefaultGenerationTask(
      * Seeks until it encounters a chunk that hasn't been generated yet
      */
     private fun seekGenerated() {
-        var chunkCoordinates: ChunkCoordinates
         do {
-            chunkCoordinates = nextChunkCoordinates
-        } while (PaperLib.isChunkGenerated(world, chunkCoordinates.x, chunkCoordinates.z))
-        lastChunkCoords = chunkCoordinates
+            lastChunkCoords = nextChunkCoordinates
+            count = shape.count
+        } while (PaperLib.isChunkGenerated(world, lastChunkCoords.x, lastChunkCoords.z))
     }
 
     /**
      * Generates the world until it encounters the worlds border
      */
     private fun generateUntilBorder() {
-        this.state = TaskState.GENERATING
         var chunkCoordinates: ChunkCoordinates
 
         while (!cancelRun && !borderReached()) {
-            if (plugin.mspt < msptThreshold) {
+            if (plugin.mspt < msptThreshold && !unloader.isFull) {
                 chunkCoordinates = nextChunkCoordinates
-                this.requestGeneration(chunkCoordinates)
+                requestGeneration(chunkCoordinates)
 
-                this.lastChunkCoords = chunkCoordinates
-                this.count = shape.count
+                lastChunkCoords = chunkCoordinates
+                count = shape.count
+            } else {
+                Thread.sleep(50L)
             }
         }
         if (!cancelRun) {

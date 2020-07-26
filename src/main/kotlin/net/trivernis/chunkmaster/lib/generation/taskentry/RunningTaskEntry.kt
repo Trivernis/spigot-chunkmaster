@@ -21,13 +21,13 @@ class RunningTaskEntry(
             var chunkGenerationSpeed: Double? = null
             if (lastProgress != null) {
                 val progressDiff = generationTask.shape.progress() - lastProgress!!.second
-                val timeDiff = (System.currentTimeMillis() - lastProgress!!.first).toDouble()/1000
-                generationSpeed = progressDiff/timeDiff
+                val timeDiff = (System.currentTimeMillis() - lastProgress!!.first).toDouble() / 1000
+                generationSpeed = progressDiff / timeDiff
             }
             if (lastChunkCount != null) {
                 val chunkDiff = generationTask.count - lastChunkCount!!.second
-                val timeDiff = (System.currentTimeMillis() - lastChunkCount!!.first).toDouble()/1000
-                chunkGenerationSpeed = chunkDiff/timeDiff
+                val timeDiff = (System.currentTimeMillis() - lastChunkCount!!.first).toDouble() / 1000
+                chunkGenerationSpeed = chunkDiff / timeDiff
             }
             lastProgress = Pair(System.currentTimeMillis(), generationTask.shape.progress())
             lastChunkCount = Pair(System.currentTimeMillis(), generationTask.count)
@@ -43,16 +43,28 @@ class RunningTaskEntry(
         thread.start()
     }
 
-    fun cancel(timeout: Long) {
+    fun cancel(timeout: Long): Boolean {
         if (generationTask.isRunning) {
             generationTask.cancel()
             thread.interrupt()
         }
-        try {
-            if (PaperLib.isPaper()) {
-                // Seems to cause problem on spigot because of chunkloading blocking the generation
-                thread.join(timeout)
+        return try {
+            joinThread(timeout)
+        } catch (e: InterruptedException) {
+            true
+        }
+    }
+
+    private fun joinThread(timeout: Long): Boolean {
+        var threadStopped = false
+
+        for (i in 0..100) {
+            if (!thread.isAlive || !generationTask.isRunning) {
+                threadStopped = true
+                break
             }
-        } catch (e: InterruptedException) {}
+            Thread.sleep(timeout / 100)
+        }
+        return threadStopped
     }
 }
