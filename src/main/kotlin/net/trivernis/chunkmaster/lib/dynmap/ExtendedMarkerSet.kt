@@ -2,7 +2,6 @@ package net.trivernis.chunkmaster.lib.dynmap
 
 import org.bukkit.Location
 import org.dynmap.markers.AreaMarker
-import org.dynmap.markers.Marker
 import org.dynmap.markers.MarkerSet
 import org.dynmap.markers.PolyLineMarker
 
@@ -46,7 +45,12 @@ class ExtendedMarkerSet(private val markerSet: MarkerSet) {
     }
 
 
-    fun creUpdatePolyLineMarker(id: String, label: String, edges: List<Location>, style: MarkerStyle?): PolyLineMarker? {
+    fun creUpdatePolyLineMarker(
+        id: String,
+        label: String,
+        edges: List<Location>,
+        style: MarkerStyle?
+    ): PolyLineMarker? {
         var marker = markerSet.findPolyLineMarker(id)
         val xList = edges.map { it.x }
         val yList = edges.map { it.y }
@@ -54,7 +58,16 @@ class ExtendedMarkerSet(private val markerSet: MarkerSet) {
         if (marker != null) {
             marker.setCornerLocations(xList.toDoubleArray(), yList.toDoubleArray(), zList.toDoubleArray())
         } else {
-            marker = markerSet.createPolyLineMarker(id, label, false, edges.first().world.name, xList.toDoubleArray(), yList.toDoubleArray(), zList.toDoubleArray(), true)
+            marker = markerSet.createPolyLineMarker(
+                id,
+                label,
+                false,
+                edges.first().world.name,
+                xList.toDoubleArray(),
+                yList.toDoubleArray(),
+                zList.toDoubleArray(),
+                true
+            )
         }
         if (style != null) {
             if (style.lineStyle != null) {

@@ -1,6 +1,5 @@
 package net.trivernis.chunkmaster.lib.generation
 
-import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import org.bukkit.Chunk
 import java.util.concurrent.CompletableFuture
 

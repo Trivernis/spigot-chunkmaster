@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server: Server) : Listener {
 
     private val pauseOnPlayerCount: Int
-        get () {
+        get() {
             return chunkmaster.config.getInt("generation.pause-on-player-count")
         }
     private var playerPaused = false
@@ -25,7 +25,7 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
                     chunkmaster.logger.info(chunkmaster.langManager.getLocalized("RESUME_PLAYER_LEAVE"))
                 }
                 chunkmaster.generationManager.resumeAll()
-            } else if (chunkmaster.generationManager.paused){
+            } else if (chunkmaster.generationManager.paused) {
                 chunkmaster.logger.info(chunkmaster.langManager.getLocalized("PAUSE_MANUALLY"))
                 playerPaused = chunkmaster.generationManager.paused
             }

@@ -22,11 +22,11 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             return chunkmaster.config.getLong("generation.unloading-period")
         }
     private val pauseOnPlayerCount: Int
-        get () {
+        get() {
             return chunkmaster.config.getInt("generation.pause-on-player-count")
         }
     private val autostart: Boolean
-        get () {
+        get() {
             return chunkmaster.config.getBoolean("generation.autostart")
         }
 

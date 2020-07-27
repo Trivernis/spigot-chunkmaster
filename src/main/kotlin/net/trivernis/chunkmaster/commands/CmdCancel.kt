@@ -5,7 +5,7 @@ import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdCancel(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "cancel"
 
     /**
@@ -19,7 +19,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
     ): MutableList<String> {
         val genManager = chunkmaster.generationManager
         val allTasks = genManager.allTasks
-        return allTasks.filter {it.id.toString().indexOf(args[0]) == 0}
+        return allTasks.filter { it.id.toString().indexOf(args[0]) == 0 }
             .map { it.id.toString() }.toMutableList()
     }
 

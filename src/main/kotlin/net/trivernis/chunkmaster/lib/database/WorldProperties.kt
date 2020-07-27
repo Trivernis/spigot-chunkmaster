@@ -1,6 +1,5 @@
 package net.trivernis.chunkmaster.lib.database
 
-import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import java.util.concurrent.CompletableFuture
 
 class WorldProperties(private val sqliteManager: SqliteManager) {
@@ -36,7 +35,7 @@ class WorldProperties(private val sqliteManager: SqliteManager) {
 
         getWorldCenter(worldName).thenAccept {
             if (it != null) {
-                updateWorldProperties(worldName, center).thenAccept {completableFuture.complete(null) }
+                updateWorldProperties(worldName, center).thenAccept { completableFuture.complete(null) }
             } else {
                 insertWorldProperties(worldName, center).thenAccept { completableFuture.complete(null) }
             }
@@ -49,7 +48,8 @@ class WorldProperties(private val sqliteManager: SqliteManager) {
      */
     private fun updateWorldProperties(worldName: String, center: Pair<Int, Int>): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
-        sqliteManager.executeStatement("UPDATE world_properties SET center_x = ?, center_z = ? WHERE name = ?",
+        sqliteManager.executeStatement(
+            "UPDATE world_properties SET center_x = ?, center_z = ? WHERE name = ?",
             hashMapOf(
                 1 to center.first,
                 2 to center.second,
@@ -67,7 +67,8 @@ class WorldProperties(private val sqliteManager: SqliteManager) {
      */
     private fun insertWorldProperties(worldName: String, center: Pair<Int, Int>): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
-        sqliteManager.executeStatement("INSERT INTO world_properties (name, center_x, center_z) VALUES (?, ?, ?)",
+        sqliteManager.executeStatement(
+            "INSERT INTO world_properties (name, center_x, center_z) VALUES (?, ?, ?)",
             hashMapOf(
                 1 to worldName,
                 2 to center.first,

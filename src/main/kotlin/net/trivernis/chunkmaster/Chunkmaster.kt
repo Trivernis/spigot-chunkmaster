@@ -10,7 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
 
-class Chunkmaster: JavaPlugin() {
+class Chunkmaster : JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
     lateinit var generationManager: GenerationManager
     lateinit var langManager: LanguageManager
@@ -48,7 +48,7 @@ class Chunkmaster: JavaPlugin() {
 
         if (PaperLib.isPaper() && PaperLib.getMinecraftPatchVersion() >= 225) {
             tpsTask = server.scheduler.runTaskTimer(this, Runnable {
-                mspt = 1000/server.currentTick   // use papers exposed tick rather than calculating it
+                mspt = 1000 / server.currentTick   // use papers exposed tick rather than calculating it
             }, 1, 300)
         } else {
             tpsTask = server.scheduler.runTaskTimer(this, Runnable {
@@ -97,7 +97,7 @@ class Chunkmaster: JavaPlugin() {
             this.sqliteManager = SqliteManager(this)
             sqliteManager.init()
             logger.info(langManager.getLocalized("DB_INIT_FINISHED"))
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             logger.warning(langManager.getLocalized("DB_INIT_EROR", e.message!!))
         }
     }

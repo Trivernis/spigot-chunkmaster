@@ -2,13 +2,10 @@ package net.trivernis.chunkmaster.lib.generation
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.bukkit.Chunk
-import java.lang.Exception
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.collections.HashSet
 
-class ChunkUnloader(private val plugin: Chunkmaster): Runnable {
+class ChunkUnloader(private val plugin: Chunkmaster) : Runnable {
     private val maxLoadedChunks = plugin.config.getInt("generation.max-loaded-chunks")
     private val lock = ReentrantReadWriteLock()
     private var unloadingQueue = Vector<Chunk>(maxLoadedChunks)
