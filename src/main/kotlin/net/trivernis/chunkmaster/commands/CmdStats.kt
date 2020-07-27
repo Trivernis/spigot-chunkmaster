@@ -62,10 +62,7 @@ class CmdStats(private val chunkmaster: Chunkmaster) : Subcommand {
         )}
             ${chunkmaster.langManager.getLocalized("STATS_CORES", runtime.availableProcessors())}
             
-            ${chunkmaster.langManager.getLocalized(
-            "STATS_PLUGIN_LOADED_CHUNKS",
-            chunkmaster.generationManager.loadedChunkCount
-        )}
+            ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_LOADED_CHUNKS", chunkmaster.generationManager.loadedChunkCount)}
         """.trimIndent()
         for (world in sender.server.worlds) {
             message += "\n\n" + getWorldStatsMessage(sender, world)
