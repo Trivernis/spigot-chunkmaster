@@ -1,14 +1,10 @@
 package net.trivernis.chunkmaster.lib.shapes
 
-import net.trivernis.chunkmaster.lib.dynmap.ExtendedMarkerSet
-import net.trivernis.chunkmaster.lib.dynmap.MarkerStyle
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 import kotlin.math.PI
 import kotlin.math.pow
-import kotlin.math.sqrt
-import kotlin.system.exitProcess
 
 class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape(center, start, radius) {
     private var r = 0
@@ -21,7 +17,7 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
     }
 
     override fun total(): Double {
-       return (PI * radius.toFloat().pow(2))
+        return (PI * radius.toFloat().pow(2))
     }
 
     override fun progress(): Double {
@@ -50,16 +46,19 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
         if (endReached()) {
             return currentPos
         }
+
         if (count == 0 && currentPos != center) {
             val tmpCircle = Circle(center, center, radius)
             while (tmpCircle.next() != currentPos && !tmpCircle.endReached());
             this.count = tmpCircle.count
             this.r = tmpCircle.r
         }
+
         if (count == 0) {
             count++
             return center
         }
+
         if (coords.isEmpty()) {
             r++
             val tmpCoords = HashSet<Pair<Int, Int>>()
@@ -70,6 +69,7 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
             coords.addAll(tmpCoords)
             previousCoords.addAll(tmpCoords)
         }
+
         count++
         val coord = coords.pop()
         currentPos = Pair(coord.first + center.first, coord.second + center.second)

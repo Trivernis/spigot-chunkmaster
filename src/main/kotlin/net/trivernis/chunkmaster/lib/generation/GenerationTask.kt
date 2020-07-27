@@ -4,7 +4,6 @@ import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.dynmap.*
 import net.trivernis.chunkmaster.lib.shapes.Shape
 import org.bukkit.World
-import java.util.concurrent.Semaphore
 import kotlin.math.ceil
 
 /**
@@ -75,12 +74,14 @@ abstract class GenerationTask(
                 TaskState.CORRECTING -> {
                     this.generateMissing()
                 }
-                else -> { }
+                else -> {
+                }
             }
             if (!cancelRun && this.borderReached()) {
                 this.setEndReached()
             }
-        } catch (e: InterruptedException){}
+        } catch (e: InterruptedException) {
+        }
         isRunning = false
     }
 
@@ -108,7 +109,8 @@ abstract class GenerationTask(
             markerSet?.creUpdatePolyLineMarker(
                 markerAreaId,
                 markerAreaName,
-                this.shape.getShapeEdgeLocations().map { ChunkCoordinates(it.first, it.second).getCenterLocation(this.world) },
+                this.shape.getShapeEdgeLocations()
+                    .map { ChunkCoordinates(it.first, it.second).getCenterLocation(this.world) },
                 markerAreaStyle
             )
         }

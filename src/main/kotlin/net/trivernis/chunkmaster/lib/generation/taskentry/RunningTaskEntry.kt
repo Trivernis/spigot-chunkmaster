@@ -1,6 +1,5 @@
 package net.trivernis.chunkmaster.lib.generation.taskentry
 
-import io.papermc.lib.PaperLib
 import net.trivernis.chunkmaster.lib.generation.GenerationTask
 
 class RunningTaskEntry(

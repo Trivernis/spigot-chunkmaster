@@ -37,7 +37,8 @@ class GenerationTasks(private val sqliteManager: SqliteManager) {
      */
     fun addGenerationTask(world: String, center: ChunkCoordinates, radius: Int, shape: String): CompletableFuture<Int> {
         val completableFuture = CompletableFuture<Int>()
-        sqliteManager.executeStatement("""
+        sqliteManager.executeStatement(
+            """
             INSERT INTO generation_tasks (center_x, center_z, last_x, last_z, world, radius, shape)
             values (?, ?, ?, ?, ?, ?, ?)""",
             hashMapOf(

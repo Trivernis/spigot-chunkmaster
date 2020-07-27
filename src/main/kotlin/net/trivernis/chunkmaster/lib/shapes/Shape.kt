@@ -1,9 +1,5 @@
 package net.trivernis.chunkmaster.lib.shapes
 
-import net.trivernis.chunkmaster.lib.dynmap.ExtendedMarkerSet
-import net.trivernis.chunkmaster.lib.dynmap.MarkerStyle
-import javax.xml.stream.Location
-
 abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) {
     protected var currentPos = start
     protected var radius = radius

@@ -1,11 +1,9 @@
 package net.trivernis.chunkmaster.lib.shapes
 
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.pow
-import kotlin.math.sqrt
 
-class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(center, start, radius) {
+class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape(center, start, radius) {
     private var direction = 0
 
     override fun endReached(): Boolean {
@@ -44,20 +42,20 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
             count = simSpiral.count
         }
         if (count == 1) {   // because of the center behaviour
-            count ++
+            count++
             return currentPos
         }
         if (currentPos == center) { // the center has to be handled exclusively
             currentPos = Pair(center.first, center.second + 1)
-            count ++
+            count++
             return center
         } else {
             val distances = getDistances(center, currentPos)
             if (abs(distances.first) == abs(distances.second)) {
-                    direction = (direction + 1)%5
-                }
+                direction = (direction + 1) % 5
             }
-        when(direction) {
+        }
+        when (direction) {
             0 -> {
                 currentPos = Pair(currentPos.first + 1, currentPos.second)
             }
@@ -75,7 +73,7 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int): Shape(
                 direction = 0
             }
         }
-        count ++
+        count++
         return currentPos
     }
 

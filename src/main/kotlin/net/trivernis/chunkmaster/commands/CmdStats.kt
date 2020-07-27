@@ -5,9 +5,8 @@ import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.World
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 
-class CmdStats(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdStats(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "stats"
 
     override fun onTabComplete(
@@ -23,8 +22,10 @@ class CmdStats(private val chunkmaster: Chunkmaster): Subcommand {
         if (args.isNotEmpty()) {
             val world = sender.server.getWorld(args[0])
             if (world == null) {
-                sender.sendMessage(chunkmaster.langManager.getLocalized("STATS_HEADER") + "\n" +
-                        chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", args[0]))
+                sender.sendMessage(
+                    chunkmaster.langManager.getLocalized("STATS_HEADER") + "\n" +
+                            chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", args[0])
+                )
                 return false
             }
             sender.sendMessage(getWorldStatsMessage(sender, world))
@@ -53,7 +54,12 @@ class CmdStats(private val chunkmaster: Chunkmaster): Subcommand {
             ${chunkmaster.langManager.getLocalized("STATS_SERVER")}
             ${chunkmaster.langManager.getLocalized("STATS_SERVER_VERSION", sender.server.version)}
             ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_VERSION", chunkmaster.description.version)}
-            ${chunkmaster.langManager.getLocalized("STATS_MEMORY", memUsed/1000000, runtime.maxMemory()/1000000, (memUsed.toFloat()/runtime.maxMemory().toFloat()) * 100)}
+            ${chunkmaster.langManager.getLocalized(
+            "STATS_MEMORY",
+            memUsed / 1000000,
+            runtime.maxMemory() / 1000000,
+            (memUsed.toFloat() / runtime.maxMemory().toFloat()) * 100
+        )}
             ${chunkmaster.langManager.getLocalized("STATS_CORES", runtime.availableProcessors())}
             
             ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_LOADED_CHUNKS", chunkmaster.generationManager.loadedChunkCount)}

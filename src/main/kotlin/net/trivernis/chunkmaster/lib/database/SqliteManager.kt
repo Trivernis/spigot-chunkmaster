@@ -2,7 +2,6 @@ package net.trivernis.chunkmaster.lib.database
 
 import net.trivernis.chunkmaster.Chunkmaster
 import org.apache.commons.lang.exception.ExceptionUtils
-import java.lang.Exception
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -59,8 +58,10 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
         }
         try {
             Class.forName("org.sqlite.JDBC")
-            this.connection = DriverManager.getConnection("jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
-                    "${chunkmaster.config.getString("database.filename")}")
+            this.connection = DriverManager.getConnection(
+                "jdbc:sqlite:${chunkmaster.dataFolder.absolutePath}/" +
+                        "${chunkmaster.config.getString("database.filename")}"
+            )
             return this.connection
         } catch (e: Exception) {
             chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("DATABASE_CONNECTION_ERROR"))
@@ -143,11 +144,17 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
             try {
                 var tableDef = "CREATE TABLE IF NOT EXISTS $table ("
 
-                for (column in tables.find{it.first == table}!!.second) {
+                for (column in tables.find { it.first == table }!!.second) {
                     tableDef += "${column.first} ${column.second},"
                 }
                 tableDef = tableDef.substringBeforeLast(",") + ");"
-                chunkmaster.logger.finest(chunkmaster.langManager.getLocalized("CREATE_TABLE_DEFINITION", table, tableDef))
+                chunkmaster.logger.finest(
+                    chunkmaster.langManager.getLocalized(
+                        "CREATE_TABLE_DEFINITION",
+                        table,
+                        tableDef
+                    )
+                )
                 executeStatement(tableDef, HashMap(), null)
             } catch (e: Exception) {
                 chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("TABLE_CREATE_ERROR", table))
@@ -159,9 +166,21 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
             val updateSql = "ALTER TABLE ${table.first} ADD COLUMN ${table.second.first} ${table.second.second}"
             try {
                 executeStatement(updateSql, HashMap(), null)
-                chunkmaster.logger.finest(chunkmaster.langManager.getLocalized("UPDATE_TABLE_DEFINITION", table.first, updateSql))
+                chunkmaster.logger.finest(
+                    chunkmaster.langManager.getLocalized(
+                        "UPDATE_TABLE_DEFINITION",
+                        table.first,
+                        updateSql
+                    )
+                )
             } catch (e: Exception) {
-                chunkmaster.logger.severe(chunkmaster.langManager.getLocalized("UPDATE_TABLE_FAILED", table.first, updateSql))
+                chunkmaster.logger.severe(
+                    chunkmaster.langManager.getLocalized(
+                        "UPDATE_TABLE_FAILED",
+                        table.first,
+                        updateSql
+                    )
+                )
                 chunkmaster.logger.severe(e.message)
                 chunkmaster.logger.info(ExceptionUtils.getStackTrace(e))
             }
