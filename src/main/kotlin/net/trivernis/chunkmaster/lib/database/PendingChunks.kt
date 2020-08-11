@@ -2,8 +2,11 @@ package net.trivernis.chunkmaster.lib.database
 
 import net.trivernis.chunkmaster.lib.generation.ChunkCoordinates
 import java.util.concurrent.CompletableFuture
+import kotlin.math.ceil
 
 class PendingChunks(private val sqliteManager: SqliteManager) {
+
+    private val insertionCount = 300
     /**
      * Returns a list of pending chunks for a taskId
      */
@@ -30,10 +33,25 @@ class PendingChunks(private val sqliteManager: SqliteManager) {
         return completableFuture
     }
 
+    fun addPendingChunks(taskId: Int, pendingChunks: List<ChunkCoordinates>): CompletableFuture<Void> {
+        val futures = ArrayList<CompletableFuture<Void>>()
+        val statementCount = ceil(pendingChunks.size.toDouble() / insertionCount).toInt()
+
+        for (i in 0 until statementCount) {
+            futures.add(insertPendingChunks(taskId, pendingChunks.subList(i * insertionCount, ((i * insertionCount) + insertionCount).coerceAtMost(pendingChunks.size))))
+        }
+
+        if (futures.size > 0) {
+            return CompletableFuture.allOf(*futures.toTypedArray())
+        } else {
+            return CompletableFuture.supplyAsync { null }
+        }
+    }
+
     /**
      * Adds pending chunks for a taskid
      */
-    fun addPendingChunks(taskId: Int, pendingChunks: List<ChunkCoordinates>): CompletableFuture<Void> {
+    private fun insertPendingChunks(taskId: Int, pendingChunks: List<ChunkCoordinates>): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
         if (pendingChunks.isEmpty()) {
             completableFuture.complete(null)

@@ -9,6 +9,8 @@ import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
+import java.lang.IllegalStateException
+import java.lang.NullPointerException
 
 class Chunkmaster : JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
@@ -103,11 +105,15 @@ class Chunkmaster : JavaPlugin() {
     }
 
     private fun getDynmap(): DynmapAPI? {
-        val dynmap = server.pluginManager.getPlugin("dynmap")
-        return if (dynmap != null && dynmap is DynmapAPI) {
-            logger.info(langManager.getLocalized("PLUGIN_DETECTED", "dynmap", dynmap.dynmapVersion))
-            dynmap
-        } else {
+        return try {
+            val dynmap = server.pluginManager.getPlugin("dynmap")
+            if (dynmap != null && dynmap is DynmapAPI) {
+                logger.info(langManager.getLocalized("PLUGIN_DETECTED", "dynmap", dynmap.dynmapVersion))
+                dynmap
+            } else {
+                null
+            }
+        } catch (e: IllegalStateException) {
             null
         }
     }

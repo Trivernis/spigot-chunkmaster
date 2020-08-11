@@ -6,6 +6,7 @@ import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import kotlin.math.ceil
+import kotlin.math.pow
 
 class CmdList(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "list"
@@ -49,14 +50,13 @@ class CmdList(private val chunkmaster: Chunkmaster) : Subcommand {
      */
     private fun getGenerationEntry(task: TaskEntry): String {
         val genTask = task.generationTask
-        val percentage = if (genTask.radius > 0)
-            " (%.1f".format(genTask.shape.progress() * 100) + "%)."
-        else
-            ""
+        val progress = genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
+        val percentage = " (%.1f".format(progress * 100) + "%)."
+
         val count = if (genTask.radius > 0) {
             "${genTask.count} / ${ceil(genTask.shape.total()).toInt()}"
         } else {
-            genTask.count.toString()
+            "${genTask.count} / worldborder"
         }
         return "\n" + chunkmaster.langManager.getLocalized(
             "TASKS_ENTRY",

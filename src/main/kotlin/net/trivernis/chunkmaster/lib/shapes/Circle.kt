@@ -20,9 +20,13 @@ class Circle(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
         return (PI * radius.toFloat().pow(2))
     }
 
-    override fun progress(): Double {
+    override fun progress(maxRadius: Int?): Double {
         // TODO: Radius inner progress
-        return (count / (PI * radius.toFloat().pow(2))).coerceAtMost(1.0)
+        return if (maxRadius != null) {
+            (count / (PI * maxRadius.toFloat().pow(2))).coerceAtMost(1.0)
+        } else {
+            (count / (PI * radius.toFloat().pow(2))).coerceAtMost(1.0)
+        }
     }
 
     override fun currentRadius(): Int {
