@@ -55,7 +55,7 @@ class CmdList(private val chunkmaster: Chunkmaster) : Subcommand {
         val count = if (genTask.radius > 0) {
             "${genTask.count} / ${ceil(genTask.shape.total()).toInt()}"
         } else {
-            "${genTask.count} / worldborder ${(genTask.world.worldBorder.size / 16).pow(2).toInt()}"
+            "${genTask.count} / worldborder"
         }
         return "\n" + chunkmaster.langManager.getLocalized(
             "TASKS_ENTRY",
