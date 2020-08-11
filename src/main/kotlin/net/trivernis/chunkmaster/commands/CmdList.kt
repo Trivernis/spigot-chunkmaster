@@ -52,6 +52,7 @@ class CmdList(private val chunkmaster: Chunkmaster) : Subcommand {
         val genTask = task.generationTask
         val progress = genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
         val percentage = " (%.1f".format(progress * 100) + "%)."
+
         val count = if (genTask.radius > 0) {
             "${genTask.count} / ${ceil(genTask.shape.total()).toInt()}"
         } else {
