@@ -36,6 +36,11 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
                     centerX = sender.location.chunk.x
                     centerZ = sender.location.chunk.z
                 }
+                args.size == 1 -> {
+                    world = args[0]
+                    centerX = sender.location.chunk.x
+                    centerZ = sender.location.chunk.z
+                }
                 args.size == 2 -> {
                     world = sender.world.name
                     if (args[0].toIntOrNull() == null || args[1].toIntOrNull() == null) {
