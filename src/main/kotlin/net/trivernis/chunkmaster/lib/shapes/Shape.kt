@@ -19,7 +19,7 @@ abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>
     /**
      * Returns the progress of the shape
      */
-    abstract fun progress(): Double
+    abstract fun progress(maxRadius: Int?): Double
 
     /**
      * The total number of chunks to generate

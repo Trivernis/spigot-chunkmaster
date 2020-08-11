@@ -5,6 +5,8 @@ import java.util.concurrent.CompletableFuture
 import kotlin.math.ceil
 
 class PendingChunks(private val sqliteManager: SqliteManager) {
+
+    private val insertionCount = 300
     /**
      * Returns a list of pending chunks for a taskId
      */
@@ -33,10 +35,10 @@ class PendingChunks(private val sqliteManager: SqliteManager) {
 
     fun addPendingChunks(taskId: Int, pendingChunks: List<ChunkCoordinates>): CompletableFuture<Void> {
         val futures = ArrayList<CompletableFuture<Void>>()
-        val statementCount = ceil(pendingChunks.size.toDouble() / 100.0).toInt()
+        val statementCount = ceil(pendingChunks.size.toDouble() / insertionCount).toInt()
 
         for (i in 0 until statementCount) {
-            futures.add(insertPendingChunks(taskId, pendingChunks.subList(i * 100, ((i * 100) + 100).coerceAtMost(pendingChunks.size))))
+            futures.add(insertPendingChunks(taskId, pendingChunks.subList(i * insertionCount, ((i * insertionCount) + insertionCount).coerceAtMost(pendingChunks.size))))
         }
 
         if (futures.size > 0) {

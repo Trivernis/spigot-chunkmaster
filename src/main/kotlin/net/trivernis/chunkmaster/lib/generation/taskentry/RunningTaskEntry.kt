@@ -18,8 +18,9 @@ class RunningTaskEntry(
         get() {
             var generationSpeed: Double? = null
             var chunkGenerationSpeed: Double? = null
+            val progress = generationTask.shape.progress(if (generationTask.radius < 0) (generationTask.world.worldBorder.size / 32).toInt() else null)
             if (lastProgress != null) {
-                val progressDiff = generationTask.shape.progress() - lastProgress!!.second
+                val progressDiff = progress - lastProgress!!.second
                 val timeDiff = (System.currentTimeMillis() - lastProgress!!.first).toDouble() / 1000
                 generationSpeed = progressDiff / timeDiff
             }
@@ -28,13 +29,13 @@ class RunningTaskEntry(
                 val timeDiff = (System.currentTimeMillis() - lastChunkCount!!.first).toDouble() / 1000
                 chunkGenerationSpeed = chunkDiff / timeDiff
             }
-            lastProgress = Pair(System.currentTimeMillis(), generationTask.shape.progress())
+            lastProgress = Pair(System.currentTimeMillis(), progress)
             lastChunkCount = Pair(System.currentTimeMillis(), generationTask.count)
             return Pair(generationSpeed, chunkGenerationSpeed)
         }
 
     init {
-        lastProgress = Pair(System.currentTimeMillis(), generationTask.shape.progress())
+        lastProgress = Pair(System.currentTimeMillis(), generationTask.shape.progress(null))
         lastChunkCount = Pair(System.currentTimeMillis(), generationTask.count)
     }
 
