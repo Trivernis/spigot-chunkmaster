@@ -41,8 +41,10 @@ class ChunkmasterEvents(private val chunkmaster: Chunkmaster, private val server
             if (chunkmaster.generationManager.tasks.isNotEmpty()) {
                 chunkmaster.logger.info(chunkmaster.langManager.getLocalized("PAUSE_PLAYER_JOIN"))
             }
-            playerPaused = chunkmaster.generationManager.paused
-            chunkmaster.generationManager.pauseAll()
+            if (!chunkmaster.generationManager.paused) {
+                playerPaused = chunkmaster.generationManager.paused
+                chunkmaster.generationManager.pauseAll()
+            }
         }
     }
 }
