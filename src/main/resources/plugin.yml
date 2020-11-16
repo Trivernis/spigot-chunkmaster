@@ -28,7 +28,7 @@ commands:
       - chunkm
       - cmaster
 permissions:
-  cunkmaster.generate:
+  chunkmaster.generate:
     description: Allows the generate subcommand.
     default: op
   chunkmaster.list:
