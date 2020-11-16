@@ -1,6 +1,6 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '1.3.2'
+version: '1.3.3'
 description: Automated world pregeneration.
 author: Trivernis
 website: trivernis.net
@@ -28,7 +28,7 @@ commands:
       - chunkm
       - cmaster
 permissions:
-  cunkmaster.generate:
+  chunkmaster.generate:
     description: Allows the generate subcommand.
     default: op
   chunkmaster.list:
