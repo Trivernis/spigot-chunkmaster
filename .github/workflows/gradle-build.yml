@@ -28,7 +28,7 @@ jobs:
           java-version: 1.8
 
       - name: Build Jar
-        run: sh ./gradlew shadowJar
+        run: chmod +x gradlew && ./gradlew shadowJar
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
