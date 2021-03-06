@@ -1,0 +1,42 @@
+name: Gradle Build
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop, actions ]
+  pull_request:
+    branches: [ main, develop, actions ]
+
+jobs:
+  shadowJar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Cache build data
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Jar
+        run: chmod +x gradlew && ./gradlew shadowJar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: chunkmaster
+          path: build/libs/chunkmaster-*.jar
+
+      - name: Cleanup Gradle Cache
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
