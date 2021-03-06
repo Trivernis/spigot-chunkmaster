@@ -27,9 +27,7 @@ jobs:
           java-version: 11
 
       - name: Build Jar
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: shadowJar
+        run: ./gradlew shadowJar
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
