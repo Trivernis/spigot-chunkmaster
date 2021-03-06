@@ -1,0 +1,38 @@
+name: Gradle Build
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop, actions ]
+  pull_request:
+    branches: [ main, develop, actions ]
+
+jobs:
+  shadowJar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache build data
+        uses: actions/cache@v2
+        with:
+          path: |
+            .gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Setup Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build Jar
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: shadowJar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: chunkmaster
+          path: build/libs/chunkmaster-*.jar
