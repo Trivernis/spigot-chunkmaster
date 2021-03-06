@@ -27,7 +27,7 @@ jobs:
           java-version: 11
 
       - name: Build Jar
-        run: ./gradlew shadowJar
+        run: sh ./gradlew shadowJar
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
