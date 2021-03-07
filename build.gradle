@@ -97,5 +97,7 @@ compileTestKotlin {
         implementation group: 'junit', name: 'junit', version: '4.12'
         implementation 'com.github.seeseemelk:MockBukkit:v1.16-SNAPSHOT'
         implementation 'io.kotest:kotest-runner-junit5:4.3.2'
+        implementation 'io.mockk:mockk:1.10.6'
+        implementation "org.dynmap:dynmap-api:2.0"
     }
 }
