@@ -5,7 +5,7 @@ import net.trivernis.chunkmaster.lib.generation.taskentry.PausedTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.RunningTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
 import net.trivernis.chunkmaster.lib.shapes.Circle
-import net.trivernis.chunkmaster.lib.shapes.Spiral
+import net.trivernis.chunkmaster.lib.shapes.Square
 import org.bukkit.Server
 import org.bukkit.World
 import java.util.concurrent.CompletableFuture
@@ -17,6 +17,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     val worldProperties = chunkmaster.sqliteManager.worldProperties
     private val pendingChunksTable = chunkmaster.sqliteManager.pendingChunks
     private val generationTasks = chunkmaster.sqliteManager.generationTasks
+    private val completedGenerationTasks = chunkmaster.sqliteManager.completedGenerationTasks
+
     private val unloadingPeriod: Long
         get() {
             return chunkmaster.config.getLong("generation.unloading-period")
@@ -140,6 +142,13 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
                     taskEntry.cancel(chunkmaster.config.getLong("mspt-pause-threshold"))
                 }
                 generationTasks.deleteGenerationTask(id)
+                completedGenerationTasks.addCompletedTask(
+                    id,
+                    taskEntry.generationTask.world.name,
+                    taskEntry.generationTask.shape.currentRadius(),
+                    taskEntry.generationTask.startChunk,
+                    taskEntry.generationTask.shape.javaClass.simpleName
+                )
                 pendingChunksTable.clearPendingChunks(id)
 
                 if (taskEntry is RunningTaskEntry) {
@@ -292,7 +301,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun reportGenerationProgress(task: RunningTaskEntry) {
         val genTask = task.generationTask
         val (speed, chunkSpeed) = task.generationSpeed
-        val progress = genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
+        val progress =
+            genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
         val percentage =
             "(${"%.2f".format(progress * 100)}%)"
 
@@ -356,8 +366,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     ): GenerationTask {
         val shape = when (shapeName) {
             "circle" -> Circle(Pair(center.x, center.z), Pair(start.x, start.z), radius)
-            "square" -> Spiral(Pair(center.x, center.z), Pair(start.x, start.z), radius)
-            else -> Spiral(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            "square" -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            else -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
         }
 
         return DefaultGenerationTask(

@@ -10,10 +10,10 @@ import kotlin.math.ceil
  * Interface for generation tasks.
  */
 abstract class GenerationTask(
-    private val plugin: Chunkmaster,
+    plugin: Chunkmaster,
     val world: World,
     protected val unloader: ChunkUnloader,
-    startChunk: ChunkCoordinates,
+    val startChunk: ChunkCoordinates,
     val shape: Shape,
     val missingChunks: HashSet<ChunkCoordinates>,
     var state: TaskState

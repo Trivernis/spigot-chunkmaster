@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class CmdSetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
-    override val name = "setCenter";
+    override val name = "setCenter"
 
     override fun onTabComplete(
         sender: CommandSender,
@@ -21,7 +21,7 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
                     .map { it.name }.toMutableList()
             }
         }
-        return emptyList<String>().toMutableList();
+        return emptyList<String>().toMutableList()
     }
 
     override fun execute(sender: CommandSender, args: List<String>): Boolean {

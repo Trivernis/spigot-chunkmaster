@@ -37,12 +37,16 @@ class CmdStats(private val chunkmaster: Chunkmaster) : Subcommand {
     }
 
     private fun getWorldStatsMessage(sender: CommandSender, world: World): String {
-        var message = """
+        return """
             ${chunkmaster.langManager.getLocalized("STATS_WORLD_NAME", world.name)}
             ${chunkmaster.langManager.getLocalized("STATS_ENTITY_COUNT", world.entities.size)}
             ${chunkmaster.langManager.getLocalized("STATS_LOADED_CHUNKS", world.loadedChunks.size)}
+            ${
+            chunkmaster.langManager.getLocalized(
+                "STATS_GENERATING",
+                chunkmaster.generationManager.tasks.find { it.generationTask.world == world } != null)
+        }
         """.trimIndent()
-        return message
     }
 
     private fun getServerStatsMessage(sender: CommandSender): String {
@@ -54,15 +58,22 @@ class CmdStats(private val chunkmaster: Chunkmaster) : Subcommand {
             ${chunkmaster.langManager.getLocalized("STATS_SERVER")}
             ${chunkmaster.langManager.getLocalized("STATS_SERVER_VERSION", sender.server.version)}
             ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_VERSION", chunkmaster.description.version)}
-            ${chunkmaster.langManager.getLocalized(
-            "STATS_MEMORY",
-            memUsed / 1000000,
-            runtime.maxMemory() / 1000000,
-            (memUsed.toFloat() / runtime.maxMemory().toFloat()) * 100
-        )}
+            ${
+            chunkmaster.langManager.getLocalized(
+                "STATS_MEMORY",
+                memUsed / 1000000,
+                runtime.maxMemory() / 1000000,
+                (memUsed.toFloat() / runtime.maxMemory().toFloat()) * 100
+            )
+        }
             ${chunkmaster.langManager.getLocalized("STATS_CORES", runtime.availableProcessors())}
             
-            ${chunkmaster.langManager.getLocalized("STATS_PLUGIN_LOADED_CHUNKS", chunkmaster.generationManager.loadedChunkCount)}
+            ${
+            chunkmaster.langManager.getLocalized(
+                "STATS_PLUGIN_LOADED_CHUNKS",
+                chunkmaster.generationManager.loadedChunkCount
+            )
+        }
         """.trimIndent()
         for (world in sender.server.worlds) {
             message += "\n\n" + getWorldStatsMessage(sender, world)

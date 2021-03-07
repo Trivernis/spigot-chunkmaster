@@ -38,6 +38,17 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
                 Pair("chunk_x", "integer NOT NULL"),
                 Pair("chunk_z", "integer NOT NULL")
             )
+        ),
+        Pair(
+            "completed_generation_tasks",
+            listOf(
+                Pair("id", "integer PRIMARY KEY"),
+                Pair("world", "text NOT NULL"),
+                Pair("completed_radius", "integer NOT NULL"),
+                Pair("center_x", "integer NOT NULL"),
+                Pair("center_z", "integer NOT NULL"),
+                Pair("shape", "text NOT NULL")
+            )
         )
     )
     private val needUpdate = HashSet<Pair<String, Pair<String, String>>>()
@@ -48,6 +59,7 @@ class SqliteManager(private val chunkmaster: Chunkmaster) {
     val worldProperties = WorldProperties(this)
     val pendingChunks = PendingChunks(this)
     val generationTasks = GenerationTasks(this)
+    val completedGenerationTasks = CompletedGenerationTasks(this)
 
     /**
      * Returns the connection to the database

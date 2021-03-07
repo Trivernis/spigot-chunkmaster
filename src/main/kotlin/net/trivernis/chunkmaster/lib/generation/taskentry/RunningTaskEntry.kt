@@ -18,7 +18,8 @@ class RunningTaskEntry(
         get() {
             var generationSpeed: Double? = null
             var chunkGenerationSpeed: Double? = null
-            val progress = generationTask.shape.progress(if (generationTask.radius < 0) (generationTask.world.worldBorder.size / 32).toInt() else null)
+            val progress =
+                generationTask.shape.progress(if (generationTask.radius < 0) (generationTask.world.worldBorder.size / 32).toInt() else null)
             if (lastProgress != null) {
                 val progressDiff = progress - lastProgress!!.second
                 val timeDiff = (System.currentTimeMillis() - lastProgress!!.first).toDouble() / 1000

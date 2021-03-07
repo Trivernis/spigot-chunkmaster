@@ -113,7 +113,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
             )
             true
         } else if (world == null) {
-            sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName));
+            sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName))
             false
         } else {
             sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ALREADY_EXISTS", worldName))
