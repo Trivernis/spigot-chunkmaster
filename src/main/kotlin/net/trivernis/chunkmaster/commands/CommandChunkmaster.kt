@@ -87,5 +87,8 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
 
         val cmdStats = CmdStats(chunkmaster)
         commands[cmdStats.name] = cmdStats
+
+        val cmdCompleted = CmdCompleted(chunkmaster)
+        commands[cmdCompleted.name] = cmdCompleted
     }
 }

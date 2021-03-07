@@ -41,6 +41,7 @@ class CmdStats(private val chunkmaster: Chunkmaster) : Subcommand {
             ${chunkmaster.langManager.getLocalized("STATS_WORLD_NAME", world.name)}
             ${chunkmaster.langManager.getLocalized("STATS_ENTITY_COUNT", world.entities.size)}
             ${chunkmaster.langManager.getLocalized("STATS_LOADED_CHUNKS", world.loadedChunks.size)}
+            ${chunkmaster.langManager.getLocalized("STATS_GENERATING", chunkmaster.generationManager.tasks.find { it.generationTask.world == world } != null)}
         """.trimIndent()
         return message
     }

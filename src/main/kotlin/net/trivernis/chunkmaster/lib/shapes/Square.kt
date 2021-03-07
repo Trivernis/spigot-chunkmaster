@@ -3,7 +3,7 @@ package net.trivernis.chunkmaster.lib.shapes
 import kotlin.math.abs
 import kotlin.math.pow
 
-class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape(center, start, radius) {
+class Square(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape(center, start, radius) {
     private var direction = 0
 
     override fun endReached(): Boolean {
@@ -40,7 +40,7 @@ class Spiral(center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) : Shape
         }
         if (count == 0 && currentPos != center) {
             // simulate the spiral to get the correct direction and count
-            val simSpiral = Spiral(center, center, radius)
+            val simSpiral = Square(center, center, radius)
             while (simSpiral.next() != currentPos && !simSpiral.endReached());
             direction = simSpiral.direction
             count = simSpiral.count
