@@ -1,6 +1,7 @@
 package net.trivernis.chunkmaster.commands
 
 import net.trivernis.chunkmaster.Chunkmaster
+import net.trivernis.chunkmaster.lib.ArgParser
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.Server
 import org.bukkit.command.Command
@@ -11,6 +12,7 @@ import org.bukkit.command.TabCompleter
 class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val server: Server) : CommandExecutor,
     TabCompleter {
     private val commands = HashMap<String, Subcommand>()
+    private val argParser = ArgParser()
 
     init {
         registerCommands()
@@ -36,7 +38,9 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
     /**
      * /chunkmaster command to handle all commands
      */
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, bukkitArgs: Array<out String>): Boolean {
+        val args = argParser.parseArguments(bukkitArgs.joinToString(" "))
+
         if (args.isNotEmpty()) {
             if (sender.hasPermission("chunkmaster.${args[0].toLowerCase()}")) {
                 return if (commands.containsKey(args[0])) {
