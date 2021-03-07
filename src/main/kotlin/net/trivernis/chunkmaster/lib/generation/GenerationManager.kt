@@ -301,7 +301,8 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     private fun reportGenerationProgress(task: RunningTaskEntry) {
         val genTask = task.generationTask
         val (speed, chunkSpeed) = task.generationSpeed
-        val progress = genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
+        val progress =
+            genTask.shape.progress(if (genTask.radius < 0) (genTask.world.worldBorder.size / 32).toInt() else null)
         val percentage =
             "(${"%.2f".format(progress * 100)}%)"
 

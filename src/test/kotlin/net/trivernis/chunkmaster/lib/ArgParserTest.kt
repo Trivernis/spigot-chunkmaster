@@ -12,8 +12,17 @@ class ArgParserTest {
     }
 
     @Test
+    fun `it handles escaped sequences`() {
+        argParser.parseArguments("first second\\ pt2 third").shouldBe(listOf("first", "second pt2", "third"))
+        argParser.parseArguments("first \"second\\\" part 2\" third")
+            .shouldBe(listOf("first", "second\" part 2", "third"))
+        argParser.parseArguments("first \\\\second third").shouldBe(listOf("first", "\\second", "third"))
+    }
+
+    @Test
     fun `it parses quoted arguments as one argument`() {
-        argParser.parseArguments("first \"second with space\" third").shouldBe(listOf("first", "second with space", "third"))
+        argParser.parseArguments("first \"second with space\" third")
+            .shouldBe(listOf("first", "second with space", "third"))
         argParser.parseArguments("\"first\" \"second\" \"third\"").shouldBe(listOf("first", "second", "third"))
     }
 
@@ -36,13 +45,15 @@ class ArgParserTest {
 
     @Test
     fun `it parses arguments with weird whitespace`() {
-        argParser.parseArguments("   first      second  \t third \n forth    ").shouldBe(listOf("first", "second", "third", "forth"))
+        argParser.parseArguments("   first      second  \t third \n forth    ")
+            .shouldBe(listOf("first", "second", "third", "forth"))
     }
 
     @Test
     fun `it deals predictable with malformed input`() {
         argParser.parseArguments("first \"second third fourth").shouldBe(listOf("first", "second third fourth"))
-        argParser.parseArguments("\"first second \"third\" fourth").shouldBe(listOf("first second ", "third", " fourth"))
+        argParser.parseArguments("\"first second \"third\" fourth")
+            .shouldBe(listOf("first second ", "third", " fourth"))
         argParser.parseArguments("first second third fourth\"").shouldBe(listOf("first", "second", "third", "fourth"))
         argParser.parseArguments("\"").shouldBe(emptyList())
     }

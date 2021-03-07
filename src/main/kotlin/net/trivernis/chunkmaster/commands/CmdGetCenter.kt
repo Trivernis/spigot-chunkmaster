@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class CmdGetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
-    override val name = "getCenter";
+    override val name = "getCenter"
 
     override fun onTabComplete(
         sender: CommandSender,
@@ -27,7 +27,7 @@ class CmdGetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
             if (args.isNotEmpty()) {
                 args[0]
             } else {
-                sender.world.name;
+                sender.world.name
             }
         } else {
             if (args.isEmpty()) {

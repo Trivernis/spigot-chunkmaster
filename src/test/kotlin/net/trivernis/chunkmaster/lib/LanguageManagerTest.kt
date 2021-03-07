@@ -1,4 +1,5 @@
 package net.trivernis.chunkmaster.lib
+
 import io.kotest.matchers.string.shouldNotBeEmpty
 import io.mockk.every
 import io.mockk.mockk
@@ -13,9 +14,9 @@ class LanguageManagerTest {
         val plugin = mockk<Chunkmaster>()
         val config = mockk<FileConfiguration>()
 
-        every {plugin.dataFolder} returns createTempDir()
-        every {plugin.config} returns config
-        every {config.getString("language")} returns "en"
+        every { plugin.dataFolder } returns createTempDir()
+        every { plugin.config } returns config
+        every { config.getString("language") } returns "en"
 
         langManager = LanguageManager(plugin)
         langManager.loadProperties()

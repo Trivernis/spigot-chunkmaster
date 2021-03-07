@@ -44,7 +44,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster) : Subcommand {
             }
 
         } else {
-            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"));
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"))
             false
         }
     }

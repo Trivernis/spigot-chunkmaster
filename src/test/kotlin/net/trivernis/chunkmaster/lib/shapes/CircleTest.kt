@@ -46,20 +46,22 @@ class CircleTest {
 
     @Test
     fun `it returns the right edges`() {
-        circle.getShapeEdgeLocations().shouldContainAll(listOf(
-            Pair(2, -1),
-            Pair(2, 0),
-            Pair(2, 1),
-            Pair(1, 2),
-            Pair(0, 2),
-            Pair(-1, 2),
-            Pair(-2, 1),
-            Pair(-2, 0),
-            Pair(-2, -1),
-            Pair(-1, -2),
-            Pair(0, -2),
-            Pair(1, -2),
-        ))
+        circle.getShapeEdgeLocations().shouldContainAll(
+            listOf(
+                Pair(2, -1),
+                Pair(2, 0),
+                Pair(2, 1),
+                Pair(1, 2),
+                Pair(0, 2),
+                Pair(-1, 2),
+                Pair(-2, 1),
+                Pair(-2, 0),
+                Pair(-2, -1),
+                Pair(-1, -2),
+                Pair(0, -2),
+                Pair(1, -2),
+            )
+        )
     }
 
     @Test

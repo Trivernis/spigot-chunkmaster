@@ -9,7 +9,6 @@ import org.bstats.bukkit.Metrics
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
-import java.lang.IllegalStateException
 
 open class Chunkmaster : JavaPlugin() {
     lateinit var sqliteManager: SqliteManager

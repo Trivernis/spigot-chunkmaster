@@ -38,7 +38,12 @@ class CommandChunkmaster(private val chunkmaster: Chunkmaster, private val serve
     /**
      * /chunkmaster command to handle all commands
      */
-    override fun onCommand(sender: CommandSender, command: Command, label: String, bukkitArgs: Array<out String>): Boolean {
+    override fun onCommand(
+        sender: CommandSender,
+        command: Command,
+        label: String,
+        bukkitArgs: Array<out String>
+    ): Boolean {
         val args = argParser.parseArguments(bukkitArgs.joinToString(" "))
 
         if (args.isNotEmpty()) {

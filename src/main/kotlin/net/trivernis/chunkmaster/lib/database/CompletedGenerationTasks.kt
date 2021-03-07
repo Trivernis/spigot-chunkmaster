@@ -8,7 +8,7 @@ class CompletedGenerationTasks(private val sqliteManager: SqliteManager) {
     /**
      * Returns the list of all completed tasks
      */
-    fun getCompletedTasks(): CompletableFuture<List<CompletedGenerationTask>>  {
+    fun getCompletedTasks(): CompletableFuture<List<CompletedGenerationTask>> {
         val completableFuture = CompletableFuture<List<CompletedGenerationTask>>()
 
         sqliteManager.executeStatement("SELECT * FROM completed_generation_tasks", HashMap()) { res ->
@@ -25,10 +25,13 @@ class CompletedGenerationTasks(private val sqliteManager: SqliteManager) {
     /**
      * Returns a list of completed tasks for a world
      */
-    fun getCompletedTasksForWorld(world: String): CompletableFuture<List<CompletedGenerationTask>>  {
+    fun getCompletedTasksForWorld(world: String): CompletableFuture<List<CompletedGenerationTask>> {
         val completableFuture = CompletableFuture<List<CompletedGenerationTask>>()
 
-        sqliteManager.executeStatement("SELECT * FROM completed_generation_tasks WHERE world = ?", hashMapOf(1 to world)) { res ->
+        sqliteManager.executeStatement(
+            "SELECT * FROM completed_generation_tasks WHERE world = ?",
+            hashMapOf(1 to world)
+        ) { res ->
             val tasks = ArrayList<CompletedGenerationTask>()
 
             while (res!!.next()) {
@@ -51,16 +54,25 @@ class CompletedGenerationTasks(private val sqliteManager: SqliteManager) {
     /**
      * Adds a completed task
      */
-    fun addCompletedTask(id: Int, world: String, radius: Int, center: ChunkCoordinates, shape: String): CompletableFuture<Void> {
+    fun addCompletedTask(
+        id: Int,
+        world: String,
+        radius: Int,
+        center: ChunkCoordinates,
+        shape: String
+    ): CompletableFuture<Void> {
         val completableFuture = CompletableFuture<Void>()
-        sqliteManager.executeStatement("INSERT INTO completed_generation_tasks (id, world, completed_radius, center_x, center_z, shape) VALUES (?, ?, ?, ?, ?, ?)", hashMapOf(
-            1 to id,
-            2 to world,
-            3 to radius,
-            4 to center.x,
-            5 to center.z,
-            6 to shape,
-        )) {
+        sqliteManager.executeStatement(
+            "INSERT INTO completed_generation_tasks (id, world, completed_radius, center_x, center_z, shape) VALUES (?, ?, ?, ?, ?, ?)",
+            hashMapOf(
+                1 to id,
+                2 to world,
+                3 to radius,
+                4 to center.x,
+                5 to center.z,
+                6 to shape,
+            )
+        ) {
             completableFuture.complete(null)
         }
         return completableFuture
