@@ -22,9 +22,7 @@ idea {
 }
 
 group "net.trivernis"
-
 version PLUGIN_VERSION
-
 sourceCompatibility = 1.8
 
 repositories {
@@ -56,12 +54,18 @@ repositories {
 
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compileOnly "com.destroystokyo.paper:paper-api:1.14.4-R0.1-SNAPSHOT"
     compileOnly "org.dynmap:dynmap-api:2.0"
     compileOnly group: 'org.xerial', name: 'sqlite-jdbc', version: '3.28.0'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "io.papermc:paperlib:1.0.6"
     implementation "org.bstats:bstats-bukkit:1.5"
+
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'io.kotest:kotest-runner-junit5:4.3.2'
+    testImplementation 'io.mockk:mockk:1.10.6'
+    testImplementation "org.dynmap:dynmap-api:2.0"
 }
 
 apply plugin: "com.github.johnrengelman.shadow"
@@ -70,6 +74,9 @@ apply plugin: 'java'
 shadowJar {
     relocate 'io.papermc.lib', 'net.trivernis.chunkmaster.paperlib'
     relocate 'org.bstats', 'net.trivernis.chunkmaster.bstats'
+    relocate 'kotlin', 'net.trivernis.chunkmaster.kotlin'
+    relocate 'org.intellij', 'net.trivernis.chunkmaster.intellij'
+    relocate 'org.jetbrains', 'net.trivernis.chunkmaster.jetbrains'
 }
 
 processResources {
@@ -92,11 +99,5 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
-    }
-    dependencies {
-        implementation group: 'junit', name: 'junit', version: '4.12'
-        implementation 'io.kotest:kotest-runner-junit5:4.3.2'
-        implementation 'io.mockk:mockk:1.10.6'
-        implementation "org.dynmap:dynmap-api:2.0"
     }
 }

@@ -6,14 +6,10 @@ import net.trivernis.chunkmaster.lib.LanguageManager
 import net.trivernis.chunkmaster.lib.database.SqliteManager
 import net.trivernis.chunkmaster.lib.generation.GenerationManager
 import org.bstats.bukkit.Metrics
-import org.bukkit.plugin.PluginDescriptionFile
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.plugin.java.JavaPluginLoader
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
-import java.io.File
 import java.lang.IllegalStateException
-import javax.annotation.ParametersAreNonnullByDefault
 
 open class Chunkmaster : JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
