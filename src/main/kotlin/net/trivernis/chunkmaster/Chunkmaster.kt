@@ -10,7 +10,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.dynmap.DynmapAPI
 import java.lang.IllegalStateException
-import java.lang.NullPointerException
 
 class Chunkmaster : JavaPlugin() {
     lateinit var sqliteManager: SqliteManager
@@ -32,7 +31,7 @@ class Chunkmaster : JavaPlugin() {
         logger.finest("LogLevel: FINEST")
         configure()
 
-        val metrics = Metrics(this)
+        Metrics(this)
 
         langManager = LanguageManager(this)
         langManager.loadProperties()

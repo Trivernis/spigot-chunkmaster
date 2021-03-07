@@ -48,6 +48,10 @@ repositories {
         name 'mikeprimm'
         url 'https://repo.mikeprimm.com'
     }
+
+    maven {
+        url 'https://jitpack.io'
+    }
 }
 
 dependencies {
@@ -90,6 +94,8 @@ compileTestKotlin {
         jvmTarget = "1.8"
     }
     dependencies {
-        compileOnly group: 'junit', name: 'junit', version: '4.12'
+        implementation group: 'junit', name: 'junit', version: '4.12'
+        implementation 'com.github.seeseemelk:MockBukkit:v1.16-SNAPSHOT'
+        implementation 'io.kotest:kotest-runner-junit5:4.3.2'
     }
 }
