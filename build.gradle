@@ -76,7 +76,7 @@ processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     with copySpec {
         from 'src/main/resources/'
-        include '**/*'
+        include 'plugin.yml'
         filter { String line ->
             line.replace('$$PLUGIN_VERSION$$', PLUGIN_VERSION)
         }
@@ -95,7 +95,6 @@ compileTestKotlin {
     }
     dependencies {
         implementation group: 'junit', name: 'junit', version: '4.12'
-        implementation 'com.github.seeseemelk:MockBukkit:v1.16-SNAPSHOT'
         implementation 'io.kotest:kotest-runner-junit5:4.3.2'
         implementation 'io.mockk:mockk:1.10.6'
         implementation "org.dynmap:dynmap-api:2.0"
