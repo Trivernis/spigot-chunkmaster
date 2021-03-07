@@ -1,6 +1,6 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '1.3.3'
+version: $$PLUGIN_VERSION$$
 description: Automated world pregeneration.
 author: Trivernis
 website: trivernis.net

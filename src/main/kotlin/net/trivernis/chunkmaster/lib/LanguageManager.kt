@@ -56,8 +56,13 @@ class LanguageManager(private val plugin: Chunkmaster) {
      * Returns a localized message with replacements
      */
     fun getLocalized(key: String, vararg replacements: Any): String {
-        val localizedString = langProps.getProperty(key)
-        return String.format(localizedString, *replacements)
+        try {
+            val localizedString = langProps.getProperty(key)
+            return String.format(localizedString, *replacements)
+        } catch (e: NullPointerException) {
+            plugin.logger.severe("Failed to get localized entry for $key")
+            throw e
+        }
     }
 
     /**
