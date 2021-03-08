@@ -5,6 +5,7 @@ import net.trivernis.chunkmaster.lib.generation.taskentry.PausedTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.RunningTaskEntry
 import net.trivernis.chunkmaster.lib.generation.taskentry.TaskEntry
 import net.trivernis.chunkmaster.lib.shapes.Circle
+import net.trivernis.chunkmaster.lib.shapes.Shape
 import net.trivernis.chunkmaster.lib.shapes.Square
 import org.bukkit.Server
 import org.bukkit.World
@@ -58,18 +59,31 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
     /**
      * Adds a generation task
      */
-    fun addTask(world: World, radius: Int = -1, shape: String = "square"): Int {
+    fun addTask(world: World, radius: Int = -1, shape: String = "square", startRadius: Int = 0): Int {
         val foundTask = allTasks.find { it.generationTask.world == world }
 
         if (foundTask == null) {
             val center = worldProperties.getWorldCenter(world.name).join()
+
 
             val centerChunk = if (center == null) {
                 ChunkCoordinates(world.spawnLocation.chunk.x, world.spawnLocation.chunk.z)
             } else {
                 ChunkCoordinates(center.first, center.second)
             }
-            val generationTask = createGenerationTask(world, centerChunk, centerChunk, radius, shape, null)
+            val shapeInstance = stringToShape(shape, centerChunk, centerChunk, radius)
+            var startCoordinates = Pair(centerChunk.x, centerChunk.z)
+
+            if (startRadius > 0) {
+                println(startRadius)
+
+                while (shapeInstance.currentRadius() != startRadius) {
+                    startCoordinates = shapeInstance.next()
+                    println(shapeInstance.currentRadius())
+                }
+            }
+
+            val generationTask = createGenerationTask(world, centerChunk, ChunkCoordinates(startCoordinates.first, startCoordinates.second), radius, shape, null)
             val id = generationTasks.addGenerationTask(world.name, centerChunk, radius, shape).join()
 
             generationTask.onEndReached {
@@ -364,11 +378,7 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
         shapeName: String,
         pendingChunks: List<ChunkCoordinates>?
     ): GenerationTask {
-        val shape = when (shapeName) {
-            "circle" -> Circle(Pair(center.x, center.z), Pair(start.x, start.z), radius)
-            "square" -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
-            else -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
-        }
+        val shape = stringToShape(shapeName, center, start, radius)
 
         return DefaultGenerationTask(
             chunkmaster,
@@ -379,5 +389,19 @@ class GenerationManager(private val chunkmaster: Chunkmaster, private val server
             shape, pendingChunks?.toHashSet() ?: HashSet(),
             TaskState.GENERATING
         )
+    }
+
+    private fun stringToShape(
+        shapeName: String,
+        center: ChunkCoordinates,
+        start: ChunkCoordinates,
+        radius: Int
+    ): Shape {
+        val shape = when (shapeName) {
+            "circle" -> Circle(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            "square" -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+            else -> Square(Pair(center.x, center.z), Pair(start.x, start.z), radius)
+        }
+        return shape
     }
 }

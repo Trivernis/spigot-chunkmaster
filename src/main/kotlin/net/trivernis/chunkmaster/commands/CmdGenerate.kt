@@ -41,36 +41,40 @@ class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
      */
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
         var worldName = ""
-        var blockRadius = -1
+        var blockRadius: Pair<Int, Int> = Pair(-1, 0)
         var shape = "square"
 
         if (sender is Player) {
             worldName = sender.world.name
         }
         if (args.isEmpty()) {
-            if (sender is Player) {
-                return createTask(sender, worldName, blockRadius, shape)
+            return if (sender is Player) {
+                createTask(sender, worldName, blockRadius.first, blockRadius.second, shape)
             } else {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NAME_REQUIRED"))
-                return false
+                false
             }
         }
-        if (args[0].toIntOrNull() != null && sender.server.worlds.find { it.name == args[0] } == null) {
+
+        var parsedRadius = parseRadius(args[0])
+
+        if (parsedRadius != null && sender.server.worlds.find { it.name == args[0] } == null) {
             if (sender !is Player) {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NAME_REQUIRED"))
                 return false
             }
-            blockRadius = args[0].toInt()
+            blockRadius = parsedRadius
         } else {
             worldName = args[0]
         }
 
         if (args.size == 1) {
-            return createTask(sender, worldName, blockRadius, shape)
+            return createTask(sender, worldName, blockRadius.first, blockRadius.second, shape)
         }
 
+        parsedRadius = parseRadius(args[1])
         when {
-            args[1].toIntOrNull() != null -> blockRadius = args[1].toInt()
+            parsedRadius != null -> blockRadius = parsedRadius
             args[1] in shapes -> shape = args[1]
             else -> {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("INVALID_ARGUMENT", 2, args[1]))
@@ -78,7 +82,7 @@ class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
             }
         }
         if (args.size == 2) {
-            return createTask(sender, worldName, blockRadius, shape)
+            return createTask(sender, worldName, blockRadius.first, blockRadius.second, shape)
         }
         if (args[2] in shapes) {
             shape = args[2]
@@ -87,24 +91,29 @@ class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
             return false
         }
 
-        return createTask(sender, worldName, blockRadius, shape)
+        return createTask(sender, worldName, blockRadius.first, blockRadius.second, shape)
     }
 
     /**
      * Creates the task with the given arguments.
      */
-    private fun createTask(sender: CommandSender, worldName: String, blockRadius: Int, shape: String): Boolean {
+    private fun createTask(sender: CommandSender, worldName: String, blockRadius: Int, startRadius: Int, shape: String): Boolean {
         val world = chunkmaster.server.getWorld(worldName)
         val allTasks = chunkmaster.generationManager.allTasks
+
         return if (world != null && (allTasks.find { it.generationTask.world == world }) == null) {
-            chunkmaster.generationManager.addTask(world, if (blockRadius > 0) blockRadius / 16 else -1, shape)
+            chunkmaster.generationManager.addTask(world, if (blockRadius > 0) blockRadius / 16 else -1, shape, startRadius/16)
             sender.sendMessage(
                 chunkmaster.langManager
                     .getLocalized(
                         "TASK_CREATION_SUCCESS",
                         worldName,
                         if (blockRadius > 0) {
-                            chunkmaster.langManager.getLocalized("TASK_UNIT_RADIUS", blockRadius)
+                            chunkmaster.langManager.getLocalized("TASK_UNIT_RADIUS", blockRadius) + if (startRadius > 0) {
+                                chunkmaster.langManager.getLocalized("TASK_CREATION_STARTING_AT", startRadius)
+                            } else {
+                                ""
+                            }
                         } else {
                             chunkmaster.langManager.getLocalized("TASK_UNIT_WORLDBORDER")
                         },
@@ -119,5 +128,27 @@ class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
             sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ALREADY_EXISTS", worldName))
             return false
         }
+    }
+
+    /**
+     * Tries to parse a radius that can also be a range
+     */
+    private fun parseRadius(arg: String): Pair<Int, Int>? {
+        val radiusRegex = Regex("^(\\d+)(-(\\d+))?\$")
+        val matches = radiusRegex.matchEntire(arg)
+
+        if (matches != null) {
+            val firstRadius = matches.groupValues[1].toInt()
+            var radius = Pair(firstRadius, firstRadius)
+
+            if (matches.groupValues.size >2) {
+                radius = Pair(matches.groupValues[3].toInt(), firstRadius)
+            }
+            if (radius.first < radius.second) {
+                return null
+            }
+            return radius
+        }
+        return null
     }
 }
