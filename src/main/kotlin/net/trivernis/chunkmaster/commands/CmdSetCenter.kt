@@ -6,8 +6,8 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
-    override val name = "setCenter";
+class CmdSetCenter(private val chunkmaster: Chunkmaster) : Subcommand {
+    override val name = "setCenter"
 
     override fun onTabComplete(
         sender: CommandSender,
@@ -18,10 +18,10 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
         if (args.size == 1) {
             if (args[0].toIntOrNull() == null) {
                 return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
-                    .map {it.name}.toMutableList()
+                    .map { it.name }.toMutableList()
             }
         }
-        return emptyList<String>().toMutableList();
+        return emptyList<String>().toMutableList()
     }
 
     override fun execute(sender: CommandSender, args: List<String>): Boolean {
@@ -33,6 +33,11 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
             when {
                 args.isEmpty() -> {
                     world = sender.world.name
+                    centerX = sender.location.chunk.x
+                    centerZ = sender.location.chunk.z
+                }
+                args.size == 1 -> {
+                    world = args[0]
                     centerX = sender.location.chunk.x
                     centerZ = sender.location.chunk.z
                 }
@@ -67,7 +72,7 @@ class CmdSetCenter(private val chunkmaster: Chunkmaster): Subcommand {
                 centerZ = args[2].toInt()
             }
         }
-        chunkmaster.generationManager.updateWorldCenter(world, Pair(centerX, centerZ))
+        chunkmaster.generationManager.worldProperties.setWorldCenter(world, Pair(centerX, centerZ))
         sender.sendMessage(chunkmaster.langManager.getLocalized("CENTER_UPDATED", world, centerX, centerZ))
         return true
     }

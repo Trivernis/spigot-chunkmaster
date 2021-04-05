@@ -6,7 +6,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdGenerate(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "generate"
 
     /**
@@ -20,14 +20,14 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
     ): MutableList<String> {
         if (args.size == 1) {
             return sender.server.worlds.filter { it.name.indexOf(args[0]) == 0 }
-                .map {it.name}.toMutableList()
+                .map { it.name }.toMutableList()
         } else if (args.size == 2) {
             if (args[0].toIntOrNull() != null) {
-                return shapes.filter {it.indexOf(args[1]) == 0}.toMutableList()
+                return shapes.filter { it.indexOf(args[1]) == 0 }.toMutableList()
             }
         } else if (args.size > 2) {
             if (args[1].toIntOrNull() != null) {
-                return shapes.filter {it.indexOf(args[2]) == 0}.toMutableList()
+                return shapes.filter { it.indexOf(args[2]) == 0 }.toMutableList()
             }
         }
         return emptyList<String>().toMutableList()
@@ -97,20 +97,23 @@ class CmdGenerate(private val chunkmaster: Chunkmaster): Subcommand {
         val world = chunkmaster.server.getWorld(worldName)
         val allTasks = chunkmaster.generationManager.allTasks
         return if (world != null && (allTasks.find { it.generationTask.world == world }) == null) {
-            chunkmaster.generationManager.addTask(world, if (blockRadius > 0) blockRadius/16 else -1 , shape)
-            sender.sendMessage(chunkmaster.langManager
-                .getLocalized("TASK_CREATION_SUCCESS",
-                    worldName,
-                    if (blockRadius > 0) {
-                        chunkmaster.langManager.getLocalized("TASK_UNIT_RADIUS", blockRadius)
-                    } else{
-                        chunkmaster.langManager.getLocalized("TASK_UNIT_WORLDBORDER")
-                    },
-                    shape
-                ))
+            chunkmaster.generationManager.addTask(world, if (blockRadius > 0) blockRadius / 16 else -1, shape)
+            sender.sendMessage(
+                chunkmaster.langManager
+                    .getLocalized(
+                        "TASK_CREATION_SUCCESS",
+                        worldName,
+                        if (blockRadius > 0) {
+                            chunkmaster.langManager.getLocalized("TASK_UNIT_RADIUS", blockRadius)
+                        } else {
+                            chunkmaster.langManager.getLocalized("TASK_UNIT_WORLDBORDER")
+                        },
+                        shape
+                    )
+            )
             true
-        } else if (world == null){
-            sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName));
+        } else if (world == null) {
+            sender.sendMessage(chunkmaster.langManager.getLocalized("WORLD_NOT_FOUND", worldName))
             false
         } else {
             sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ALREADY_EXISTS", worldName))

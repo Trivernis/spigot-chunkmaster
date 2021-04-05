@@ -1,13 +1,11 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-class CmdReload(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdReload(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "reload"
 
     override fun onTabComplete(

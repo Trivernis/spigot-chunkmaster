@@ -1,7 +1,5 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.command.Command

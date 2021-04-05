@@ -1,8 +1,8 @@
 package net.trivernis.chunkmaster.lib
+
 import net.trivernis.chunkmaster.Chunkmaster
-import java.lang.Exception
-import java.util.Properties
 import java.io.*
+import java.util.*
 
 class LanguageManager(private val plugin: Chunkmaster) {
     private val langProps = Properties()
@@ -20,12 +20,14 @@ class LanguageManager(private val plugin: Chunkmaster) {
         val file = File(langFile)
         val loader = Thread.currentThread().contextClassLoader
         val defaultStream = this.javaClass.getResourceAsStream("/i18n/DEFAULT.i18n.properties")
+
         if (defaultStream != null) {
             langProps.load(getReaderForProperties(defaultStream))
             defaultStream.close()
         } else {
             plugin.logger.severe("Couldn't load default language properties.")
         }
+
         if (file.exists()) {
             try {
                 val inputStream = loader.getResourceAsStream(langFile)
@@ -34,7 +36,7 @@ class LanguageManager(private val plugin: Chunkmaster) {
                     langFileLoaded = true
                     inputStream.close()
                 }
-            } catch (e: Exception)  {
+            } catch (e: Exception) {
                 plugin.logger.warning("Language file $langFile could not be loaded!")
                 plugin.logger.fine(e.toString())
             }
@@ -54,8 +56,13 @@ class LanguageManager(private val plugin: Chunkmaster) {
      * Returns a localized message with replacements
      */
     fun getLocalized(key: String, vararg replacements: Any): String {
-        val localizedString = langProps.getProperty(key)
-        return String.format(localizedString, *replacements)
+        try {
+            val localizedString = langProps.getProperty(key)
+            return String.format(localizedString, *replacements)
+        } catch (e: NullPointerException) {
+            plugin.logger.severe("Failed to get localized entry for $key")
+            throw e
+        }
     }
 
     /**

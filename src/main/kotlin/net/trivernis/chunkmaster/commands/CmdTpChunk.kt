@@ -1,8 +1,6 @@
 package net.trivernis.chunkmaster.commands
 
 import io.papermc.lib.PaperLib
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
 import org.bukkit.Material
@@ -10,7 +8,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class CmdTpChunk(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdTpChunk(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "tpchunk"
 
     override fun onTabComplete(

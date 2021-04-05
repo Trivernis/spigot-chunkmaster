@@ -1,14 +1,11 @@
 package net.trivernis.chunkmaster.commands
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ComponentBuilder
 import net.trivernis.chunkmaster.Chunkmaster
 import net.trivernis.chunkmaster.lib.Subcommand
-import net.trivernis.chunkmaster.lib.generation.TaskEntry
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 
-class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
+class CmdCancel(private val chunkmaster: Chunkmaster) : Subcommand {
     override val name = "cancel"
 
     /**
@@ -22,7 +19,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
     ): MutableList<String> {
         val genManager = chunkmaster.generationManager
         val allTasks = genManager.allTasks
-        return allTasks.filter {it.id.toString().indexOf(args[0]) == 0}
+        return allTasks.filter { it.id.toString().indexOf(args[0]) == 0 }
             .map { it.id.toString() }.toMutableList()
     }
 
@@ -39,7 +36,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
             }
 
             if (index != null && chunkmaster.generationManager.removeTask(index)) {
-                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELED", index))
+                sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_CANCELLED", index))
                 true
             } else {
                 sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_NOT_FOUND", args[0]))
@@ -47,7 +44,7 @@ class CmdCancel(private val chunkmaster: Chunkmaster): Subcommand {
             }
 
         } else {
-            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"));
+            sender.sendMessage(chunkmaster.langManager.getLocalized("TASK_ID_REQUIRED"))
             false
         }
     }

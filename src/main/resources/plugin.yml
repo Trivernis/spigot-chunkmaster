@@ -1,7 +1,7 @@
 main: net.trivernis.chunkmaster.Chunkmaster
 name: Chunkmaster
-version: '1.2.1'
-description: Chunk commands plugin.
+version: $$PLUGIN_VERSION$$
+description: Automated world pregeneration.
 author: Trivernis
 website: trivernis.net
 api-version: '1.14'
@@ -23,19 +23,20 @@ commands:
       /<command> setCenter [[<world>] <chunkX> <chunkZ>]] - sets the center chunk of the world
       /<command> getCenter [<world>] - returns the center chunk of the world
       /<command> stats [<world>] - returns some chunk stats for the world or the whole server
+      /<command> completed - lists all completed tasks for all worlds
     aliases:
       - chm
       - chunkm
       - cmaster
 permissions:
-  cunkmaster.generate:
+  chunkmaster.generate:
     description: Allows the generate subcommand.
     default: op
   chunkmaster.list:
     description: Allows the list subcommand.
     default: op
   chunkmaster.cancel:
-    description: Allows the remove subcommand.
+    description: Allows the cancel subcommand.
     default: op
   chunkmaster.pause:
     description: Allows the pause subcommand.
@@ -55,6 +56,12 @@ permissions:
   chunkmaster.getcenter:
     description: Allows the getCenter subcommand.
     default: op
+  chunkmaster.stats:
+    description: Allows the stats subcommand.
+    deault: op
+  chunkmaster.completed:
+    description: Allows the completed subcommand.
+    default: op
   chunkmaster.chunkmaster:
     description: Allows Chunkmaster commands.
     default: op
@@ -63,8 +70,14 @@ permissions:
     default: op
     children:
       - chunkmaster.generate
-      - chunkmaster.listgentasks
-      - chunkmaster.removegentask
-      - chunkmaster.pausegentasks
-      - chunkmaster.resumegentasks
+      - chunkmaster.list
+      - chunkmaster.cancel
+      - chunkmaster.pause
+      - chunkmaster.resume
+      - chunkmaster.completed
+      - chunkmaster.tpchunk
+      - chunkmaster.reload
+      - chunkmaster.setcenter
+      - chunkmaster.getcenter
+      - chunkmaster.stats
       - chunkmaster.chunkmaster

@@ -1,9 +1,5 @@
 package net.trivernis.chunkmaster.lib.shapes
 
-import net.trivernis.chunkmaster.lib.dynmap.ExtendedMarkerSet
-import net.trivernis.chunkmaster.lib.dynmap.MarkerStyle
-import javax.xml.stream.Location
-
 abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>, radius: Int) {
     protected var currentPos = start
     protected var radius = radius
@@ -23,7 +19,12 @@ abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>
     /**
      * Returns the progress of the shape
      */
-    abstract fun progress(): Double
+    abstract fun progress(maxRadius: Int?): Double
+
+    /**
+     * The total number of chunks to generate
+     */
+    abstract fun total(): Double
 
     /**
      * Returns the current radius
@@ -34,4 +35,9 @@ abstract class Shape(protected val center: Pair<Int, Int>, start: Pair<Int, Int>
      * returns a poly marker for the shape
      */
     abstract fun getShapeEdgeLocations(): List<Pair<Int, Int>>
+
+    /**
+     * Resets the shape to its center start position
+     */
+    abstract fun reset()
 }
