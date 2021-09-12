@@ -1,5 +1,9 @@
 # chunkmaster [![](https://circleci.com/gh/Trivernis/spigot-chunkmaster.svg?style=shield)](https://app.circleci.com/pipelines/github/Trivernis/spigot-chunkmaster) [![CodeFactor](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster/badge)](https://www.codefactor.io/repository/github/trivernis/spigot-chunkmaster) [![](https://img.shields.io/discord/729250668162056313)](https://discord.gg/KZcMAgN)
 
+<div align="center">
+<h1>This plugin isn't actively developed anymore. If you want to add features feel free to fork it and implement it yourself or use <a href="https://www.spigotmc.org/resources/chunky.81534/">Chunky</a> instead.</h1>
+</div>
+
 This plugin can be used to pre-generate the region of a world around the spawn chunk(s).
 The generation automatically pauses when a player joins the server (assuming the server was empty before)
 and resumes when the server is empty again. The generation also auto-resumes after a server
